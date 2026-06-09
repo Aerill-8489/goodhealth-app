@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<title>健康管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;-webkit-text-size-adjust:100%;}
+:root{
+  --g:#1D9E75;--gd:#15724f;--gl:rgba(29,158,117,.12);
+  --or:#d97706;--ol:rgba(217,119,6,.12);
+  --re:#dc2626;--rl:rgba(220,38,38,.1);
+  --bl:#2563eb;--bll:rgba(37,99,235,.1);
+  --bg:#F7F5F2;--sf:#fff;--bd:#e5e1db;--bm:#d1cdc7;
+  --tx:#1a1a1a;--tm:#6b7280;--th:#9ca3af;
+  --al:rgba(217,119,6,.1);
+  --r1:8px;--r2:12px;--r3:16px;--r4:20px;
+}
+/* layout */
+#loginPage{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:24px;}
+#appShell{display:none;flex-direction:column;height:100dvh;max-width:500px;margin:0 auto;position:relative;}
+.topbar{background:var(--sf);border-bottom:.5px solid var(--bd);padding:0 12px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-shrink:0;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--g);display:flex;align-items:center;gap:5px;}
+.pages{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.page{display:none;padding:12px 12px 30px;}
+.page.active{display:block;}
+.tnav{background:var(--sf);border-bottom:.5px solid var(--bd);display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+.tnav::-webkit-scrollbar{display:none;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px 7px;cursor:pointer;gap:2px;color:var(--th);font-size:10px;transition:color .15s;white-space:nowrap;min-width:52px;}
+.ni i{font-size:19px;}
+.ni.on{color:var(--g);}
+.ni.on span{font-weight:600;}
+/* modal */
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center;}
+.ov.show{display:flex;}
+.sheet{background:var(--sf);border-radius:20px 20px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom)+24px);width:100%;max-width:500px;max-height:92vh;overflow-y:auto;}
+.shandle{width:36px;height:4px;background:var(--bm);border-radius:2px;margin:0 auto 14px;}
+.sh-title{font-size:16px;font-weight:700;margin-bottom:14px;}
+/* cards */
+.card{background:var(--sf);border-radius:var(--r2);border:.5px solid var(--bd);padding:12px;margin-bottom:9px;}
+.card-title{font-size:13px;font-weight:600;color:var(--tm);display:flex;align-items:center;gap:5px;margin-bottom:10px;}
+.banner{background:linear-gradient(135deg,var(--g),var(--gd));border-radius:var(--r2);padding:16px;color:#fff;margin-bottom:9px;text-align:center;}
+.banner h3{font-size:13px;opacity:.85;margin-bottom:6px;}
+.banner .big{font-size:34px;font-weight:700;line-height:1;}
+.banner .sub{font-size:12px;opacity:.8;margin-top:4px;}
+/* forms */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fl{font-size:12px;font-weight:600;color:var(--tm);}
+.fi{border:.5px solid var(--bm);border-radius:var(--r1);padding:9px 11px;font-size:14px;font-family:inherit;background:var(--sf);color:var(--tx);width:100%;outline:none;}
+.fi:focus{border-color:var(--g);}
+textarea.fi{resize:vertical;min-height:60px;}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:10px 14px;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:opacity .15s;}
+.btn:active{opacity:.75;}
+.btn-g{background:var(--g);color:#fff;}
+.btn-o{background:var(--ol);color:var(--or);}
+.btn-r{background:var(--rl);color:var(--re);}
+.btn-bl{width:100%;justify-content:center;margin-top:6px;}
+.btn-sm{padding:6px 11px;font-size:12px;}
+.nbtn{background:none;border:none;cursor:pointer;padding:5px;border-radius:var(--r1);color:var(--tm);font-size:16px;font-family:inherit;}
+.nbtn:active{opacity:.6;}
+/* list items */
+.cust-item{background:var(--sf);border-radius:var(--r2);border:.5px solid var(--bd);padding:11px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .1s;}
+.cust-item:active{background:var(--bg);}
+.av{background:var(--gl);color:var(--gd);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;width:38px;height:38px;font-size:14px;}
+/* badges */
+.sbadge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;}
+.sb-ok{background:var(--gl);color:var(--gd);}
+.sb-warn{background:var(--ol);color:var(--or);}
+.sb-danger{background:var(--rl);color:var(--re);}
+.sb-new{background:var(--bll);color:var(--bl);}
+/* tags */
+.tgrid{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.tag{border:1px solid var(--bm);border-radius:20px;padding:5px 11px;font-size:12px;cursor:pointer;background:var(--sf);color:var(--tm);font-family:inherit;}
+.tag.on{background:var(--gl);color:var(--gd);border-color:var(--g);}
+/* back */
+.back{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--tm);cursor:pointer;margin-bottom:12px;padding:4px 0;}
+/* search */
+.search-wrap{position:relative;margin-bottom:10px;}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--th);font-size:16px;}
+.search-wrap input{padding-left:32px;}
+/* tabs */
+.ctabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none;}
+.ctabs::-webkit-scrollbar{display:none;}
+.ctab{border:.5px solid var(--bm);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;background:var(--sf);color:var(--tm);font-family:inherit;}
+.ctab.on{background:var(--g);color:#fff;border-color:var(--g);}
+/* sh */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.stl{font-size:16px;font-weight:700;}
+/* progress */
+.pt{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.pf{height:100%;background:var(--g);border-radius:3px;transition:width .4s;}
+/* chart */
+.chwrap{height:160px;position:relative;}
+/* table */
+.twrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table.wt{width:100%;border-collapse:collapse;font-size:11px;min-width:480px;}
+table.wt th{background:var(--bg);padding:6px 8px;text-align:left;font-weight:600;border-bottom:.5px solid var(--bd);}
+table.wt td{padding:6px 8px;border-bottom:.5px solid var(--bd);}
+/* photo */
+.bafoto{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.bafoto-ph{aspect-ratio:3/4;border-radius:var(--r1);border:.5px solid var(--bm);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;background:var(--bg);}
+.bafoto-ph img{width:100%;height:100%;object-fit:cover;}
+/* role switch */
+.role-sw{display:flex;background:var(--bg);border-radius:20px;border:.5px solid var(--bm);padding:2px;gap:1px;}
+.role-sw span{padding:3px 8px;border-radius:18px;font-size:11px;font-weight:500;cursor:pointer;color:var(--tm);}
+.role-sw span.on{background:var(--g);color:#fff;}
+/* fu cards */
+.fu-card{border-radius:var(--r2);padding:11px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.fu-danger{background:var(--rl);}
+.fu-warn{background:var(--ol);}
+.fu-ok{background:var(--gl);}
+/* hint bars */
+.hint-bar{font-size:11px;padding:7px 10px;border-radius:var(--r1);margin-bottom:6px;display:flex;align-items:flex-start;gap:6px;line-height:1.5;}
+.hint-bar i{font-size:14px;flex-shrink:0;margin-top:1px;}
+.hint-ok{background:#f0fdf4;color:#15803d;}
+.hint-warn{background:var(--ol);color:#92400e;}
+.hint-info{background:var(--bll);color:#1d4ed8;}
+.hint-danger{background:var(--rl);color:var(--re);}
+/* ref bar */
+.ref-bar{display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:6px 0;border-bottom:.5px solid var(--bd);}
+.ref-bar:last-child{border-bottom:none;}
+.ref-range{color:var(--th);}
+.ref-ok{color:var(--g);}
+.ref-warn{color:var(--or);}
+.ref-danger{color:var(--re);}
+/* plan cards */
+.plan-card{border-radius:var(--r2);border:.5px solid var(--bd);overflow:hidden;margin-bottom:10px;background:var(--sf);}
+.plan-head-w{background:#EFF6FF;}.plan-head-f{background:#FFF7ED;}.plan-head-b{background:#F0FDF4;}
+.plan-badge-w{background:#BFDBFE;color:#1d4ed8;}.plan-badge-f{background:#FED7AA;color:#9a3412;}.plan-badge-b{background:#BBF7D0;color:#15803d;}
+.plan-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;}
+.plan-body{padding:0 12px 12px;}
+.plan-sec-title{font-size:11px;font-weight:600;color:var(--tm);margin:10px 0 3px;display:flex;align-items:center;gap:4px;}
+/* chips */
+.chips-wrap{display:flex;flex-wrap:wrap;min-height:38px;padding:5px;border:.5px solid var(--bm);border-radius:var(--r1);gap:4px;margin-bottom:8px;background:var(--sf);}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--gl);color:var(--gd);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;}
+.chip-x{cursor:pointer;font-size:14px;line-height:1;}
+/* select card */
+.sel-card{border:.5px solid var(--bm);border-radius:var(--r2);padding:10px;margin-bottom:7px;cursor:pointer;transition:all .15s;}
+.sel-card.on{border-color:var(--g);background:var(--gl);}
+/* dealer */
+.dealer-cust{background:var(--sf);border-radius:var(--r2);border:.5px solid var(--bd);padding:11px 12px;margin-bottom:7px;display:flex;align-items:center;gap:10px;}
+/* guide */
+.guide-item{background:var(--sf);border-radius:var(--r2);border:.5px solid var(--bd);margin-bottom:9px;overflow:hidden;}
+.guide-img{width:100%;height:100px;object-fit:cover;}
+.guide-body{padding:10px 12px;}
+/* period tabs */
+.ptabs{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;}
+.ptabs::-webkit-scrollbar{display:none;}
+.ptab{border:.5px solid var(--bm);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;background:var(--sf);color:var(--tm);font-family:inherit;flex-shrink:0;}
+.ptab.on{background:var(--g);color:#fff;border-color:var(--g);}
+/* ii */
+.ii-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.ii{background:var(--bg);border-radius:var(--r1);padding:8px 10px;}
+.il{font-size:10px;color:var(--tm);}
+.iv{font-size:14px;font-weight:600;margin-top:2px;}
+/* empty */
+.empty{text-align:center;padding:36px 16px;color:var(--th);}
+.empty i{font-size:36px;margin-bottom:8px;display:block;}
+/* toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;z-index:999;pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap;}
+.toast.show{opacity:1;}
+/* login */
+.login-card{background:var(--sf);border-radius:var(--r4);padding:28px 22px;width:100%;max-width:340px;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+.login-logo{font-size:28px;font-weight:700;color:var(--g);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--tm);margin-bottom:22px;}
+/* qa */
+.qa-q{font-size:13px;font-weight:500;margin-bottom:6px;}
+.qa-opts{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.qo{border:.5px solid var(--bm);border-radius:20px;padding:5px 11px;font-size:12px;cursor:pointer;background:var(--sf);font-family:inherit;}
+.qo.on{background:var(--g);color:#fff;border-color:var(--g);}
+/* photos */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
+.photo-slot{aspect-ratio:1;border-radius:var(--r1);border:.5px solid var(--bm);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--bg);}
+.photo-slot img{width:100%;height:100%;object-fit:cover;}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- Login -->
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo"><i class="ti ti-leaf"></i> 健康管理</div>
+    <div class="login-sub">請輸入您的姓名登入</div>
+    <div class="fg"><input class="fi" id="loginName" placeholder="姓名" style="font-size:16px;padding:11px 13px"/></div>
+    <button class="btn btn-g btn-bl" id="loginBtn"><i class="ti ti-login"></i> 登入</button>
+  </div>
+</div>
+
+<!-- App Shell -->
+<div id="appShell">
+  <div class="topbar">
+    <div class="topbar-title"><i class="ti ti-leaf"></i> 健康管理</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="role-sw" id="roleSw"></div>
+      <i class="ti ti-logout" style="font-size:19px;color:var(--tm);cursor:pointer" id="logoutBtn"></i>
+    </div>
+  </div>
+  <nav class="tnav" id="bottomNav"></nav>
+  <div class="pages" id="pagesWrap">
+
+    <!-- 顧客列表 -->
+    <div class="page" id="pg-list">
+      <div class="sh"><div class="stl">顧客</div>
+        <button class="btn btn-g btn-sm" id="addCustBtn"><i class="ti ti-plus"></i> 新增</button>
+      </div>
+      <div id="catTabsWrap" class="ctabs"></div>
+      <div class="search-wrap"><i class="ti ti-search"></i><input class="fi" id="searchInput" placeholder="搜尋顧客…"/></div>
+      <div id="custList"></div>
+    </div>
+
+    <!-- 顧客詳情 -->
+    <div class="page" id="pg-detail">
+      <div class="back" id="detailBack"><i class="ti ti-chevron-left"></i> 返回</div>
+      <div id="detailBody"></div>
+    </div>
+
+    <!-- 量測輸入 -->
+    <div class="page" id="pg-input">
+      <div class="back" id="inputBack"><i class="ti ti-chevron-left"></i> 返回</div>
+      <div id="inputBody"></div>
+    </div>
+
+    <!-- 回訪提醒 -->
+    <div class="page" id="pg-followup">
+      <div class="sh"><div class="stl">回訪提醒</div>
+        <button class="btn btn-o btn-sm" id="fuSettingsBtn"><i class="ti ti-settings"></i> 設定</button>
+      </div>
+      <div id="followupBody"></div>
+    </div>
+
+    <!-- 營養師每日回報 -->
+    <div class="page" id="pg-daily">
+      <div class="sh"><div class="stl">顧客回報</div></div>
+      <div id="dailyBody"></div>
+    </div>
+
+    <!-- 初始計劃卡 -->
+    <div class="page" id="pg-plans">
+      <div class="sh"><div class="stl">初始計劃卡</div>
+        <button class="btn btn-g btn-sm" id="addPlanBtn"><i class="ti ti-plus"></i> 新增</button>
+      </div>
+      <div id="planList"></div>
+    </div>
+
+    <!-- 飲食指南 -->
+    <div class="page" id="pg-guide">
+      <div class="sh"><div class="stl">飲食指南</div>
+        <button class="btn btn-g btn-sm" id="addGuideBtn" style="display:none"><i class="ti ti-plus"></i> 新增</button>
+      </div>
+      <div class="ctabs">
+        <button class="ctab on" id="gt0">專欄文章</button>
+        <button class="ctab" id="gt1">如何挑選飲食</button>
+      </div>
+      <div id="guideList"></div>
+    </div>
+
+    <!-- 使用者管理 -->
+    <div class="page" id="pg-users">
+      <div class="sh"><div class="stl">使用者管理</div>
+        <button class="btn btn-g btn-sm" id="addUserBtn"><i class="ti ti-plus"></i> 新增</button>
+      </div>
+      <button class="btn btn-o btn-sm" id="catMgmtBtn" style="margin-bottom:10px"><i class="ti ti-folders"></i> 管理分類</button>
+      <div id="userList"></div>
+    </div>
+
+    <!-- 匯出 -->
+    <div class="page" id="pg-export">
+      <div class="sh"><div class="stl">資料匯出</div></div>
+      <div id="exportBody"></div>
+    </div>
+
+    <!-- 顧客：我的進度 -->
+    <div class="page" id="pg-progress">
+      <div class="sh"><div class="stl">我的進度</div></div>
+      <div id="progressBody"></div>
+    </div>
+
+    <!-- 顧客：每日回報 -->
+    <div class="page" id="pg-cust-daily">
+      <div class="sh"><div class="stl">每日回報</div></div>
+      <div id="custDailyBody"></div>
+    </div>
+
+    <!-- 經銷商 -->
+    <div class="page" id="pg-dealer">
+      <div class="sh"><div class="stl">我的顧客</div></div>
+      <div id="dealerBody"></div>
+    </div>
+
+  </div><!-- /pages -->
+</div><!-- /appShell -->
+
+<!-- Modal overlay -->
+<div class="ov" id="ov">
+  <div class="sheet" id="modalSheet">
+    <div class="shandle"></div>
+    <div class="sh-title" id="mTitle"></div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ── helpers ──
+var $ = function(id){ return document.getElementById(id); };
+function qs(sel,ctx){ return (ctx||document).querySelector(sel); }
+function qsa(sel,ctx){ return (ctx||document).querySelectorAll(sel); }
+function on(id,ev,fn){ var el=$(id); if(el) el[ev]=fn; }
+function toast(msg){
+  var t=$('toast'); t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+function today(){
+  var d=new Date(); 
+  return d.getFullYear()+'-'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();
+}
+function daysSince(ds){
+  if(!ds) return 999;
+  return Math.floor((Date.now()-new Date(ds).getTime())/86400000);
+}
+function el(tag,cls,html){
+  var e=document.createElement(tag);
+  if(cls) e.className=cls;
+  if(html!==undefined) e.innerHTML=html;
+  return e;
+}
+function openModal(){ $('ov').classList.add('show'); }
+function closeModal(){ $('ov').classList.remove('show'); $('mBody').innerHTML=''; }
+function goPage(id){
+  qsa('.page').forEach(function(p){ p.classList.remove('active'); });
+  $(id).classList.add('active');
+}
+function navActive(id){
+  qsa('.ni').forEach(function(n){ n.classList.remove('on'); });
+  var el=$(id); if(el) el.classList.add('on');
+}
+
+// ── constants ──
+var SUPPS=['AB益生菌','維他命C','膠原蛋白','魚油','B群','鎂片','益纖粉','燃脂錠','蛋白飲','花椰菜粉'];
+var BUYMETHODS=['現金','匯款','信用卡','Line Pay','其他'];
+var QA=[
+  {q:'今天喝水達標了嗎？',opts:['達標','差一點','沒有']},
+  {q:'今天有運動嗎？',opts:['有','輕度','沒有']},
+  {q:'今天睡眠品質？',opts:['很好','普通','不好']},
+  {q:'今天飲食控制？',opts:['很好','普通','破戒了']},
+  {q:'今天有吃保健品嗎？',opts:['全吃','部分','沒吃']},
+  {q:'今天身體感覺？',opts:['很好','普通','不舒服']}
+];
+var ROLE_LABELS={nutritionist:'營養師',dealer:'經銷商',customer:'顧客'};
+
+// ── state ──
+var role='nutritionist';
+var currentUser='宥霖';
+var currentCid=null;
+var currentPeriod=0;
+var currentCat='全部';
+var currentGuideTab=0;
+var custFilter='';
+
+// ── DB with localStorage ──
+var STORAGE_KEY='jk_health_v1';
+function dbDefault(){
+  return {
+    categories:['公司','瓊玉','莉芬','瓊萩','莉香','瓊雯','月聰','阿坡'],
+    customers:[
+      {id:1,name:'米亞貝',gender:'女',height:162,age:32,category:'公司',phone:'',health:'無',allergy:'無',
+       products:'AB益生菌、維他命C',lastBuyMethod:'現金',lastBuyDate:'2025-01-10',
+       createdDate:'2024-06-01',lastVisitDate:'2024-06-01',beforePhoto:'',afterPhoto:'',note:'',planId:1,
+       periods:[{idx:0,label:'第1期',months:3,targetPct:8,startWeight:68,targetWeight:62.6,
+         startDate:'2024-06-01',endDate:'2024-09-01',supplements:['AB益生菌','維他命C'],weeks:[
+           {week:'第1週',date:'2024-06-08',weight:67.2,bodyAge:35,bodyFat:32,visceralFat:9,subFat:28,bmr:1420,bmi:25.6,boneMuscle:42,waist:78,hip:95,thigh:54,arm:28,note:''},
+           {week:'第2週',date:'2024-06-15',weight:66.5,bodyAge:34,bodyFat:31,visceralFat:8,subFat:27,bmr:1435,bmi:25.3,boneMuscle:43,waist:77,hip:94,thigh:53,arm:27,note:''}
+         ]}]},
+      {id:2,name:'小明',gender:'男',height:175,age:28,category:'瓊玉',phone:'',health:'無',allergy:'無',
+       products:'AB益生菌',lastBuyMethod:'匯款',lastBuyDate:'2025-01-05',
+       createdDate:'2024-05-15',lastVisitDate:'2024-05-15',beforePhoto:'',afterPhoto:'',note:'',planId:null,
+       periods:[{idx:0,label:'第1期',months:2,targetPct:5,startWeight:82,targetWeight:77.9,
+         startDate:'2024-05-15',endDate:'2024-07-15',supplements:['AB益生菌'],weeks:[]}]}
+    ],
+    reports:[
+      {id:101,customerId:1,date:'2026-06-08',
+       qa:{'今天喝水達標了嗎？':'差一點','今天有運動嗎？':'輕度','今天睡眠品質？':'普通','今天飲食控制？':'普通','今天有吃保健品嗎？':'全吃','今天身體感覺？':'普通'},
+       supps:['AB益生菌','維他命C'],
+       note:'早餐：地瓜+水煮蛋\n午餐：便當（有去掉炸物）\n晚餐：清炒蔬菜+豆腐\n今天有點想吃甜食，忍住了！',
+       reply:'',photos:[]},
+      {id:102,customerId:1,date:'2026-06-07',
+       qa:{'今天喝水達標了嗎？':'達標','今天有運動嗎？':'有','今天睡眠品質？':'很好','今天飲食控制？':'很好','今天有吃保健品嗎？':'全吃','今天身體感覺？':'很好'},
+       supps:['AB益生菌','維他命C','燃脂錠'],
+       note:'早餐：無糖豆漿+全麥吐司\n午餐：雞胸肉沙拉\n晚餐：燙青菜+蒸魚\n今天運動30分鐘，感覺很棒！',
+       reply:'太棒了！昨天做得非常好，飲食和運動都很到位！繼續保持這個節奏 💪',photos:[]}
+    ],
+    users:[
+      {id:1,name:'宥霖',role:'nutritionist',active:true,dealerCategory:''},
+      {id:2,name:'瓊玉',role:'dealer',active:true,dealerCategory:'瓊玉'},
+      {id:3,name:'示範顧客',role:'customer',active:true,dealerCategory:''}
+    ],
+    guides:[
+      {id:1,category:0,title:'為什麼體重下降但體脂沒變？',text:'體重快速下降時，很多時候是水分流失，而非真正的脂肪減少。建議搭配體脂率一起追蹤，才能了解真實的身體組成變化。',img:'',date:'2024-06-01'},
+      {id:2,category:1,title:'如何挑選早餐',text:'優質早餐建議包含蛋白質（雞蛋、豆漿）、複合碳水（地瓜、糙米）、蔬菜，避免精緻麵包和含糖飲料。',img:'',date:'2024-06-01'}
+    ],
+    followUpSettings:{newCustomerDays:90,newFreqDays:7,oldFreqDays:30,warnDays:5,dangerDays:10},
+    plans:[
+      {id:1,name:'減重計劃（標準）',type:'weight',waterGoal:'每天2000c.c.',sleepGoal:'7小時以上',exerciseFreq:'每週3次',
+       forbidFoods:'精緻澱粉、含糖飲料、油炸食物、加工食品',
+       monthOneNotes:'第一個月以建立習慣為主，不要心急！\n・每天早上空腹量體重並記錄\n・飯前30分鐘喝300c.c.水\n・避免消夜，盡量21:00前完成進食\n・保健品務必按時服用',
+       weightAlert:'體重每週穩定下降0.5~1kg為理想範圍',
+       fatAlert:'體脂率每月降低1~2%為健康速度',
+       supplements:['AB益生菌','維他命C','燃脂錠'],notes:''},
+      {id:2,name:'減脂計劃（增肌型）',type:'fat',waterGoal:'每天2500c.c.',sleepGoal:'8小時以上',exerciseFreq:'每週4~5次重訓',
+       forbidFoods:'含糖飲料、精緻糖、酒精',
+       monthOneNotes:'第一個月身體在適應期，體重變化可能不明顯，但體脂會在悄悄下降！\n・重訓後30分鐘補充蛋白質\n・睡前2小時不進食\n・體重反而微增是正常的（增肌）',
+       weightAlert:'體重可能因增肌而緩慢，以體脂率變化為主要指標',
+       fatAlert:'重點關注內臟脂肪和體脂率的下降趨勢',
+       supplements:['AB益生菌','蛋白飲','魚油','B群'],notes:''},
+      {id:3,name:'均衡改善計劃',type:'both',waterGoal:'每天1800~2000c.c.',sleepGoal:'7~8小時',exerciseFreq:'每週2~3次有氧+重訓',
+       forbidFoods:'高鈉加工食品、含糖飲料',
+       monthOneNotes:'這個計劃注重全面性改善，讓身體慢慢找回平衡！\n・飲食多樣化，每餐都要有蔬菜\n・避免跳餐，維持穩定血糖\n・壓力管理也很重要，學會放鬆',
+       weightAlert:'體重和體脂雙管齊下，進步比較平穩但紮實',
+       fatAlert:'整體健康指數的改善比單一數字更重要',
+       supplements:['AB益生菌','維他命C','魚油'],notes:''}
+    ],
+    templates:[
+      {id:1,category:'鼓勵',text:'太棒了！本週進步很明顯，繼續保持！💪'},
+      {id:2,category:'鼓勵',text:'這週做得很好！小小的進步累積就是大改變 🌟'},
+      {id:3,category:'鼓勵',text:'辛苦了！遇到困難很正常，重要的是你還在堅持 💚'},
+      {id:4,category:'飲食提醒',text:'記得飯前30分鐘喝水，可以幫助控制食慾！'},
+      {id:5,category:'飲食提醒',text:'這週精緻澱粉吃多了嗎？試著換成地瓜或糙米看看 🍠'},
+      {id:6,category:'飲食提醒',text:'消夜是體重的大敵！試著把消夜時間提前，或改喝無糖豆漿 🌙'},
+      {id:7,category:'保健品',text:'記得每天早上空腹服用AB益生菌，效果最好！'},
+      {id:8,category:'保健品',text:'維他命C要飯後服用，吸收效果更佳 💊'},
+      {id:9,category:'異常處理',text:'這週體重有點回升，別擔心！先回顧一下飲食，我們一起找出原因 🔍'},
+      {id:10,category:'異常處理',text:'體重下降但體脂沒變，可能是水分流失，多喝水並繼續觀察 💧'},
+      {id:11,category:'回訪提醒',text:'下週記得來量測喔！數據越完整，建議越精準 📊'},
+      {id:12,category:'回訪提醒',text:'上次量測已經一段時間了，有空來回診讓我看看最新進度吧！'}
+    ]
+  };
+}
+var db;
+function dbLoad(){
+  try{
+    var s=localStorage.getItem(STORAGE_KEY);
+    if(s){ db=JSON.parse(s); return; }
+  }catch(e){}
+  db=dbDefault();
+}
+function dbSave(){ try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(db)); }catch(e){} }
+
+// ── auth ──
+function doLogin(){
+  var n=$('loginName').value.trim();
+  if(!n){ toast('請輸入姓名'); return; }
+  currentUser=n;
+  var u=db.users.find(function(x){ return x.name===n; });
+  role=u?u.role:'customer';
+  $('loginPage').style.display='none';
+  $('appShell').style.display='flex';
+  setupRoleSwitch(); setupNav();
+}
+function doLogout(){
+  $('loginPage').style.display='flex';
+  $('appShell').style.display='none';
+  $('loginName').value='宥霖';
+}
+
+// ── role switch ──
+function setupRoleSwitch(){
+  var sw=$('roleSw');
+  if(role==='nutritionist'){
+    sw.innerHTML='<span id="sw_n">營養師</span><span id="sw_d">經銷商</span><span id="sw_c">顧客</span>';
+    function mark(r){ qsa('#roleSw span').forEach(function(s){ s.classList.remove('on'); }); }
+    on('sw_n','onclick',function(){ mark(); $('sw_n').classList.add('on'); switchRole('nutritionist'); });
+    on('sw_d','onclick',function(){ mark(); $('sw_d').classList.add('on'); switchRole('dealer'); });
+    on('sw_c','onclick',function(){ mark(); $('sw_c').classList.add('on'); switchRole('customer'); });
+    $('sw_n').classList.add('on');
+  } else {
+    var u=db.users.find(function(x){ return x.name===currentUser; });
+    sw.innerHTML='<span class="on">'+ROLE_LABELS[u?u.role:'customer']+'</span>';
+  }
+}
+function switchRole(r){ role=r; setupNav(); }
+
+// ── nav ──
+function setupNav(){
+  var nav=$('bottomNav');
+  $('addGuideBtn').style.display=role==='nutritionist'?'flex':'none';
+  if(role==='nutritionist'){
+    nav.innerHTML=
+      '<div class="ni" id="nav-list"><i class="ti ti-users"></i><span>顧客</span></div>'+
+      '<div class="ni" id="nav-fu"><i class="ti ti-bell"></i><span>回訪</span></div>'+
+      '<div class="ni" id="nav-daily"><i class="ti ti-message-circle"></i><span>回報</span></div>'+
+      '<div class="ni" id="nav-plans"><i class="ti ti-cards"></i><span>計劃卡</span></div>'+
+      '<div class="ni" id="nav-guide"><i class="ti ti-book"></i><span>指南</span></div>'+
+      '<div class="ni" id="nav-users"><i class="ti ti-shield-lock"></i><span>管理</span></div>';
+    on('nav-list','onclick',function(){ navActive('nav-list'); renderCatTabs(); renderCustList(); goPage('pg-list'); });
+    on('nav-fu','onclick',function(){ navActive('nav-fu'); renderFollowUp(); goPage('pg-followup'); });
+    on('nav-daily','onclick',function(){ navActive('nav-daily'); renderNutriDaily(); goPage('pg-daily'); });
+    on('nav-plans','onclick',function(){ navActive('nav-plans'); renderPlans(); goPage('pg-plans'); });
+    on('nav-guide','onclick',function(){ navActive('nav-guide'); renderGuide(); goPage('pg-guide'); });
+    on('nav-users','onclick',function(){ navActive('nav-users'); renderUsers(); goPage('pg-users'); });
+    navActive('nav-list'); renderCatTabs(); renderCustList(); goPage('pg-list');
+  } else if(role==='dealer'){
+    nav.innerHTML=
+      '<div class="ni" id="nav-dealer"><i class="ti ti-chart-bar"></i><span>我的顧客</span></div>'+
+      '<div class="ni" id="nav-guide"><i class="ti ti-book"></i><span>指南</span></div>';
+    on('nav-dealer','onclick',function(){ navActive('nav-dealer'); renderDealer(); goPage('pg-dealer'); });
+    on('nav-guide','onclick',function(){ navActive('nav-guide'); renderGuide(); goPage('pg-guide'); });
+    navActive('nav-dealer'); renderDealer(); goPage('pg-dealer');
+  } else {
+    nav.innerHTML=
+      '<div class="ni" id="nav-prog"><i class="ti ti-chart-line"></i><span>我的進度</span></div>'+
+      '<div class="ni" id="nav-crep"><i class="ti ti-pencil"></i><span>每日回報</span></div>'+
+      '<div class="ni" id="nav-guide"><i class="ti ti-book"></i><span>飲食指南</span></div>';
+    on('nav-prog','onclick',function(){ navActive('nav-prog'); renderMyProgress(); goPage('pg-progress'); });
+    on('nav-crep','onclick',function(){ navActive('nav-crep'); renderCustomerDaily(); goPage('pg-cust-daily'); });
+    on('nav-guide','onclick',function(){ navActive('nav-guide'); renderGuide(); goPage('pg-guide'); });
+    navActive('nav-prog'); renderMyProgress(); goPage('pg-progress');
+  }
+}
+
+// ── category tabs ──
+function renderCatTabs(){
+  var wrap=$('catTabsWrap'); wrap.innerHTML='';
+  var all=document.createElement('button');
+  all.className='ctab'+(currentCat==='全部'?' on':''); all.textContent='全部';
+  all.onclick=function(){ currentCat='全部'; renderCatTabs(); renderCustList(custFilter); };
+  wrap.appendChild(all);
+  db.categories.forEach(function(c){
+    var b=document.createElement('button');
+    b.className='ctab'+(currentCat===c?' on':''); b.textContent=c;
+    b.onclick=function(){ currentCat=c; renderCatTabs(); renderCustList(custFilter); };
+    wrap.appendChild(b);
+  });
+}
+
+// ── follow-up status ──
+function getFollowUpStatus(c){
+  var s=db.followUpSettings;
+  var d=daysSince(c.lastVisitDate);
+  var isNew=daysSince(c.createdDate)<=s.newCustomerDays;
+  var freq=isNew?s.newFreqDays:s.oldFreqDays;
+  var over=d-freq;
+  var status=over>=s.dangerDays?'danger':over>=s.warnDays?'warn':'ok';
+  var cls=status==='danger'?'sb-danger':status==='warn'?'sb-warn':'sb-ok';
+  var label=status==='danger'?'危險':status==='warn'?'積極':'正常';
+  return {status:status,cls:cls,label:label,daysSinceVisit:d,freqDays:freq,isNew:isNew};
+}
+
+// ── customer list ──
+function renderCustList(filter){
+  custFilter=filter||'';
+  var list=$('custList'); list.innerHTML='';
+  var cats=currentCat==='全部'?db.customers:db.customers.filter(function(c){ return c.category===currentCat; });
+  var shown=filter?cats.filter(function(c){ return c.name.includes(filter)||(c.phone&&c.phone.includes(filter)); }):cats;
+  if(!shown.length){ list.innerHTML='<div class="empty"><i class="ti ti-users"></i><p>沒有顧客</p></div>'; return; }
+  shown.forEach(function(c){
+    var fu=getFollowUpStatus(c);
+    var pending=db.reports.filter(function(r){ return r.customerId===c.id&&!r.reply; }).length;
+    var div=document.createElement('div');
+    div.className='cust-item';
+    div.innerHTML=
+      '<div class="av">'+c.name[0]+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px">'+
+          c.name+
+          '<span class="sbadge '+fu.cls+'">'+fu.label+'</span>'+
+          (c.category?'<span style="font-size:10px;background:var(--al);color:#6b4c10;padding:1px 6px;border-radius:10px">'+c.category+'</span>':'')+ 
+        '</div>'+
+        '<div style="font-size:12px;color:var(--tm);margin-top:2px">'+c.products+'</div>'+
+      '</div>'+
+      (pending>0?'<span class="sbadge sb-danger">'+pending+'則</span>':'');
+    div.onclick=function(){ openCustomer(c.id); };
+    list.appendChild(div);
+  });
+}
+
+// ── open customer ──
+function openCustomer(id){
+  currentCid=id; currentPeriod=0;
+  renderDetail(); goPage('pg-detail');
+}
+
+// ── render detail ──
+function renderDetail(){
+  var c=db.customers.find(function(x){ return x.id===currentCid; });
+  if(!c) return;
+  var p=c.periods[currentPeriod]||c.periods[0];
+  var body=$('detailBody'); body.innerHTML='';
+
+  // header
+  var hdr=el('div','');
+  hdr.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+      '<div style="display:flex;align-items:center;gap:10px">'+
+        '<div class="av" style="width:46px;height:46px;font-size:18px">'+c.name[0]+'</div>'+
+        '<div><div style="font-size:18px;font-weight:700">'+c.name+'</div>'+
+          '<div style="font-size:12px;color:var(--tm)">'+c.gender+'・'+c.height+'cm・'+c.age+'歲</div></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:6px">'+
+        '<button class="nbtn" id="editCustBtn"><i class="ti ti-edit"></i></button>'+
+        '<button class="nbtn" id="delCustBtn" style="color:var(--re)"><i class="ti ti-trash"></i></button>'+
+      '</div>'+
+    '</div>';
+  body.appendChild(hdr);
+
+  // plan card info
+  var pl=c.planId?db.plans.find(function(x){ return x.id===c.planId; }):null;
+  if(pl){
+    var typeN=pl.type==='weight'?'減重':pl.type==='fat'?'減脂':'兩者';
+    var planCard=el('div','card');
+    planCard.innerHTML=
+      '<div class="card-title"><i class="ti ti-cards"></i> 套用計劃卡'+
+        '<span style="margin-left:auto;display:flex;gap:6px;align-items:center">'+
+          '<span class="plan-badge plan-badge-'+pl.type+'">'+typeN+'</span>'+
+          '<button class="nbtn" id="changePlanBtn" style="font-size:12px;color:var(--tm)"><i class="ti ti-switch"></i></button>'+
+        '</span>'+
+      '</div>'+
+      '<div style="font-size:13px;font-weight:600;margin-bottom:6px">'+pl.name+'</div>'+
+      '<div style="font-size:12px;background:var(--bg);padding:9px;border-radius:var(--r1);white-space:pre-wrap;line-height:1.7">'+pl.monthOneNotes+'</div>'+
+      (pl.weightAlert?'<div class="hint-bar hint-warn" style="margin-top:7px"><i class="ti ti-scale"></i><div>減重：'+pl.weightAlert+'</div></div>':'')+
+      (pl.fatAlert?'<div class="hint-bar hint-info"><i class="ti ti-percentage"></i><div>減脂：'+pl.fatAlert+'</div></div>':'');
+    body.appendChild(planCard);
+  } else {
+    var noPlan=el('div','');
+    noPlan.innerHTML='<button class="btn btn-o btn-sm" id="changePlanBtn" style="margin-bottom:9px"><i class="ti ti-cards"></i> 套用計劃卡</button>';
+    body.appendChild(noPlan);
+  }
+
+  // basic info card
+  var infoCard=el('div','card');
+  infoCard.innerHTML=
+    '<div class="card-title"><i class="ti ti-info-circle"></i> 基本資料</div>'+
+    '<div class="ii-grid">'+
+      '<div class="ii"><div class="il">電話</div><div class="iv" style="font-size:13px">'+( c.phone||'—')+'</div></div>'+
+      '<div class="ii"><div class="il">健康狀況</div><div class="iv" style="font-size:13px">'+c.health+'</div></div>'+
+      '<div class="ii"><div class="il">過敏/禁忌</div><div class="iv" style="font-size:13px">'+c.allergy+'</div></div>'+
+      '<div class="ii"><div class="il">搭配產品</div><div class="iv" style="font-size:13px">'+( c.products||'—')+'</div></div>'+
+    '</div>'+
+    '<div style="margin-top:6px">'+
+      '<button class="btn btn-o btn-sm" id="savePurchaseBtn"><i class="ti ti-shopping-cart"></i> 更新購買</button>'+
+    '</div>';
+  body.appendChild(infoCard);
+
+  // photos
+  var photoCard=el('div','card');
+  photoCard.innerHTML=
+    '<div class="card-title"><i class="ti ti-camera"></i> 前後對比</div>'+
+    '<div class="bafoto">'+
+      '<div><div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:4px">挑戰前</div>'+
+        '<label class="bafoto-ph" for="bfIn">'+
+          (c.beforePhoto?'<img src="'+c.beforePhoto+'"/>':'<i class="ti ti-plus" style="font-size:22px;color:var(--th)"></i>')+
+        '</label><input type="file" id="bfIn" accept="image/*" style="display:none"/></div>'+
+      '<div><div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:4px">挑戰後</div>'+
+        '<label class="bafoto-ph" for="afIn">'+
+          (c.afterPhoto?'<img src="'+c.afterPhoto+'"/>':'<i class="ti ti-plus" style="font-size:22px;color:var(--th)"></i>')+
+        '</label><input type="file" id="afIn" accept="image/*" style="display:none"/></div>'+
+    '</div>';
+  body.appendChild(photoCard);
+
+  // challenge tabs
+  var tabsDiv=el('div','');
+  var tabsHtml='<div class="ptabs" id="ptabsRow">';
+  c.periods.forEach(function(pd,i){
+    tabsHtml+='<button class="ptab'+(i===currentPeriod?' on':'')+'" data-pi="'+i+'">'+pd.label+'</button>';
+  });
+  tabsHtml+='<button class="ptab" id="addPeriodBtn" style="border-style:dashed"><i class="ti ti-plus"></i></button></div>';
+  tabsDiv.innerHTML=tabsHtml;
+  body.appendChild(tabsDiv);
+
+  // period card
+  var sw=p.startWeight,tw=p.targetWeight,needed=+(sw-tw).toFixed(1);
+  var last=p.weeks.length?p.weeks[p.weeks.length-1].weight:sw;
+  var lost=+(sw-last).toFixed(1);
+  var pct=needed>0?Math.min(100,Math.round(lost/needed*100)):0;
+  var periodCard=el('div','card');
+  periodCard.innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'+
+      '<div>'+
+        '<div style="font-size:15px;font-weight:700">'+p.label+'</div>'+
+        '<div style="font-size:11px;color:var(--tm)">'+p.startDate+' ～ '+p.endDate+'</div>'+
+      '</div>'+
+      '<div style="text-align:right">'+
+        '<div style="font-size:22px;font-weight:700;color:var(--g)">'+last+'<span style="font-size:12px">kg</span></div>'+
+        '<div style="font-size:11px;color:var(--tm)">目標 '+tw+'kg・↓'+lost+'kg</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>達成進度</span><strong style="color:var(--g)">'+pct+'%</strong></div>'+
+    '<div class="pt" style="margin-bottom:12px"><div class="pf" style="width:'+pct+'%"></div></div>'+
+    '<div style="display:flex;gap:6px">'+
+      '<button class="btn btn-g btn-sm" id="goInputBtn"><i class="ti ti-pencil"></i> 輸入量測</button>'+
+      '<button class="btn btn-o btn-sm" id="markVisitBtn"><i class="ti ti-check"></i> 標記回訪</button>'+
+    '</div>';
+  body.appendChild(periodCard);
+
+  // smart ref
+  var refCard=el('div','card');
+  refCard.innerHTML='<div class="card-title"><i class="ti ti-bulb"></i> 智慧參考區間</div><div id="smartRefBody"></div>';
+  body.appendChild(refCard);
+  renderSmartRef(c,p);
+
+  // chart
+  var chartCard=el('div','card');
+  chartCard.innerHTML='<div class="card-title"><i class="ti ti-chart-line"></i> 體重趨勢</div><div class="chwrap"><canvas id="wChart"></canvas></div>';
+  body.appendChild(chartCard);
+
+  // weekly table
+  var tblCard=el('div','card');
+  var tblHtml='<div class="card-title"><i class="ti ti-table"></i> 量測記錄</div>';
+  if(!p.weeks.length){
+    tblHtml+='<div style="text-align:center;padding:12px;color:var(--tm);font-size:12px">尚無量測記錄</div>';
+  } else {
+    tblHtml+='<div class="twrap"><table class="wt"><thead><tr>'+
+      '<th>週次</th><th>日期</th><th>體重</th><th>體年齡</th><th>體脂%</th><th>內臟脂肪</th><th>BMI</th><th>腰圍</th><th>備註</th>'+
+      '</tr></thead><tbody>';
+    p.weeks.forEach(function(w,i){
+      tblHtml+='<tr><td>'+w.week+'</td><td>'+w.date+'</td><td><strong>'+w.weight+'kg</strong></td>'+
+        '<td>'+w.bodyAge+'</td><td>'+w.bodyFat+'%</td><td>'+w.visceralFat+'</td><td>'+w.bmi+'</td><td>'+(w.waist||'—')+'cm</td>'+
+        '<td><button class="nbtn note-btn" data-wi="'+i+'"><i class="ti ti-notes"></i></button></td></tr>';
+    });
+    tblHtml+='</tbody></table></div>';
+  }
+  tblCard.innerHTML=tblHtml;
+  body.appendChild(tblCard);
+
+  // reports
+  var reps=db.reports.filter(function(r){ return r.customerId===currentCid; }).slice().reverse();
+  var repCard=el('div','card');
+  repCard.innerHTML='<div class="card-title"><i class="ti ti-message-2"></i> 顧客每日回報 <span style="margin-left:auto;font-size:11px;color:var(--tm)">'+reps.length+'則</span></div>';
+  reps.forEach(function(r){
+    var rd=el('div','');
+    rd.style.cssText='border-bottom:.5px solid var(--bd);padding:10px 0;';
+    // QA summary chips
+    var qaHtml='';
+    if(r.qa&&Object.keys(r.qa).length){
+      var qaMap={'今天喝水達標了嗎？':'💧','今天有運動嗎？':'🏃','今天睡眠品質？':'😴','今天飲食控制？':'🥗','今天有吃保健品嗎？':'💊','今天身體感覺？':'❤️'};
+      qaHtml='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:7px">';
+      Object.keys(r.qa).forEach(function(q){
+        var icon=qaMap[q]||'•';
+        var val=r.qa[q];
+        var color=(['達標','有','很好','全吃'].includes(val))?'var(--g)':(['差一點','輕度','普通','部分'].includes(val))?'var(--or)':'var(--re)';
+        qaHtml+='<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg);border:.5px solid var(--bm)">'+icon+' '+val+'</span>';
+      });
+      qaHtml+='</div>';
+    }
+    // photos
+    var photoHtml='';
+    if(r.photos&&r.photos.length){
+      photoHtml='<div class="photo-grid" style="margin-bottom:7px">';
+      r.photos.forEach(function(p){ photoHtml+='<div class="photo-slot"><img src="'+p+'"/></div>'; });
+      photoHtml+='</div>';
+    }
+    rd.innerHTML=
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tm);margin-bottom:6px">'+
+        '<span>📅 '+r.date+'</span>'+
+        (r.reply?'<span style="color:var(--g);font-weight:600">✓ 已回覆</span>':'<span style="color:var(--re);font-weight:600">待回覆</span>')+
+      '</div>'+
+      qaHtml+
+      (r.note?'<div style="font-size:12px;line-height:1.6;background:var(--bg);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.note+'</div>':'')+
+      photoHtml+
+      (r.supps&&r.supps.length?'<div style="font-size:11px;color:var(--tm);margin-bottom:6px">💊 '+r.supps.join('、')+'</div>':'')+
+      (r.reply?'<div style="font-size:12px;background:var(--gl);color:var(--gd);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.reply+'</div>':'')+
+      '<button class="btn btn-o btn-sm reply-btn" data-rid="'+r.id+'" style="margin-top:2px"><i class="ti ti-send"></i> '+(r.reply?'修改回覆':'回覆')+'</button>';
+    repCard.appendChild(rd);
+  });
+  if(!reps.length) repCard.innerHTML+='<div style="text-align:center;padding:10px;color:var(--tm);font-size:12px">尚無回報</div>';
+  body.appendChild(repCard);
+
+  // bind all buttons
+  on('editCustBtn','onclick',function(){ editCustomer(currentCid); });
+  on('delCustBtn','onclick',function(){
+    if(!confirm('確定刪除 '+c.name+' 的所有資料？')) return;
+    db.customers=db.customers.filter(function(x){ return x.id!==currentCid; });
+    dbSave(); goPage('pg-list'); renderCustList(); toast('✓ 已刪除');
+  });
+  on('changePlanBtn','onclick',function(){ showChangePlan(currentCid); });
+  on('goInputBtn','onclick',function(){ goInput(currentCid); });
+  on('markVisitBtn','onclick',function(){
+    c.lastVisitDate=today(); dbSave(); renderDetail(); toast('✓ 已標記今日回訪');
+  });
+  on('savePurchaseBtn','onclick',function(){ showPurchaseEdit(currentCid); });
+  on('addPeriodBtn','onclick',function(){ showAddPeriod(currentCid); });
+
+  qsa('.ptab[data-pi]',body).forEach(function(btn){
+    btn.onclick=function(){ currentPeriod=+btn.dataset.pi; renderDetail(); };
+  });
+  qsa('.note-btn',body).forEach(function(btn){
+    btn.onclick=function(){ showNote(currentCid,+btn.dataset.wi); };
+  });
+  qsa('.reply-btn',body).forEach(function(btn){
+    btn.onclick=function(){ showReplyModal(+btn.dataset.rid,false); };
+  });
+  on('bfIn','onchange',function(e){ uploadPhoto(e,'before',currentCid); });
+  on('afIn','onchange',function(e){ uploadPhoto(e,'after',currentCid); });
+
+  // chart
+  setTimeout(function(){
+    var ctx=$('wChart'); if(!ctx) return;
+    if(ctx._ch) ctx._ch.destroy();
+    var labels=[p.startDate].concat(p.weeks.map(function(w){ return w.date; }));
+    var data=[p.startWeight].concat(p.weeks.map(function(w){ return w.weight; }));
+    ctx._ch=new Chart(ctx,{type:'line',data:{labels:labels,datasets:[{data:data,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',tension:0.4,pointBackgroundColor:'#1D9E75',pointRadius:4,fill:true}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});
+  },150);
+}
+
+function renderSmartRef(c,p){
+  var el=$('smartRefBody'); if(!el) return;
+  var weeks=p.weeks;
+  if(!weeks.length){ el.innerHTML='<div style="font-size:12px;color:var(--tm);text-align:center;padding:6px">輸入第一筆量測後即可查看分析</div>'; return; }
+  var last=weeks[weeks.length-1], prev=weeks.length>=2?weeks[weeks.length-2]:null;
+  var fatMin=c.gender==='女'?20:15, fatMax=c.gender==='女'?30:25;
+  var fatOk=last.bodyFat>=fatMin&&last.bodyFat<=fatMax;
+  var vfOk=last.visceralFat<=9, vfWarn=last.visceralFat<=14;
+  var bmiOk=last.bmi>=18.5&&last.bmi<=24;
+  var html=
+    '<div class="ref-bar"><span>體脂率</span><div>'+
+      '<span class="'+(last.bodyFat>0?(fatOk?'ref-ok':last.bodyFat<fatMin?'ref-ok':'ref-danger'):'')+'" style="font-weight:600">'+( last.bodyFat||'—')+'%</span>'+
+      '<span class="ref-range"> (參考'+fatMin+'~'+fatMax+'%)</span>'+
+      '<span class="sbadge '+(last.bodyFat>0?(fatOk?'sb-ok':'sb-danger'):'sb-new')+'" style="margin-left:5px">'+(last.bodyFat>0?(fatOk?'正常':last.bodyFat<fatMin?'偏低':'偏高'):'未填')+'</span>'+
+    '</div></div>'+
+    '<div class="ref-bar"><span>內臟脂肪</span><div>'+
+      '<span class="'+(last.visceralFat>0?(vfOk?'ref-ok':vfWarn?'ref-warn':'ref-danger'):'')+'" style="font-weight:600">'+(last.visceralFat||'—')+'</span>'+
+      '<span class="ref-range"> (≤9正常 ≤14偏高)</span>'+
+      '<span class="sbadge '+(last.visceralFat>0?(vfOk?'sb-ok':vfWarn?'sb-warn':'sb-danger'):'sb-new')+'" style="margin-left:5px">'+(last.visceralFat>0?(vfOk?'正常':vfWarn?'偏高':'過高'):'未填')+'</span>'+
+    '</div></div>'+
+    '<div class="ref-bar"><span>BMI</span><div>'+
+      '<span class="'+(last.bmi>0?(bmiOk?'ref-ok':last.bmi<18.5?'ref-ok':'ref-warn'):'')+'" style="font-weight:600">'+(last.bmi||'—')+'</span>'+
+      '<span class="ref-range"> (18.5~24正常)</span>'+
+      '<span class="sbadge '+(last.bmi>0?(bmiOk?'sb-ok':last.bmi<18.5?'sb-new':'sb-warn'):'sb-new')+'" style="margin-left:5px">'+(last.bmi>0?(bmiOk?'正常':last.bmi<18.5?'過輕':last.bmi<27?'過重':'肥胖'):'未填')+'</span>'+
+    '</div></div>';
+  if(prev){
+    var wd=last.weight-prev.weight, fd=last.bodyFat-prev.bodyFat;
+    if(wd<-1&&Math.abs(fd)<0.3) html+='<div class="hint-bar hint-warn" style="margin-top:6px"><i class="ti ti-droplet"></i><div>體重大幅下降但體脂變化不大，可能是水分流失，記得多補充水分！</div></div>';
+    if(wd>0&&fd<-0.5) html+='<div class="hint-bar hint-info" style="margin-top:6px"><i class="ti ti-dumbbell"></i><div>體重微增但體脂下降，正在增肌！這是好事 💪</div></div>';
+    if(wd<-0.3&&fd<-0.3) html+='<div class="hint-bar hint-ok" style="margin-top:6px"><i class="ti ti-trending-down"></i><div>體重與體脂同步下降，狀態非常理想！</div></div>';
+    if(wd>0.5&&fd>0.3) html+='<div class="hint-bar hint-danger" style="margin-top:6px"><i class="ti ti-alert-triangle"></i><div>體重與體脂同時上升，需要重新檢視飲食和生活習慣。</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+// ── add customer ──
+function showAddCustomer(){
+  $('mTitle').textContent='新增顧客';
+  var catOpts=db.categories.map(function(c){ return '<option>'+c+'</option>'; }).join('');
+  var bmOpts=BUYMETHODS.map(function(m){ return '<option>'+m+'</option>'; }).join('');
+  $('mBody').innerHTML=
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">姓名 *</label><input class="fi" id="nc_n" placeholder="姓名"/></div>'+
+      '<div class="fg"><label class="fl">性別</label><select class="fi" id="nc_g"><option>女</option><option>男</option></select></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">身高(cm)</label><input class="fi" id="nc_h" type="number"/></div>'+
+      '<div class="fg"><label class="fl">年齡</label><input class="fi" id="nc_a" type="number"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">所屬分類</label><select class="fi" id="nc_cat">'+catOpts+'</select></div>'+
+      '<div class="fg"><label class="fl">電話</label><input class="fi" id="nc_ph"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="nc_he" placeholder="慢性病等"/></div>'+
+      '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al"/></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">搭配產品</label><input class="fi" id="nc_pr" placeholder="AB益生菌…"/></div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">購買方式</label><select class="fi" id="nc_bm">'+bmOpts+'</select></div>'+
+      '<div class="fg"><label class="fl">購買日期</label><input class="fi" id="nc_bd" type="date" value="'+today()+'"/></div>'+
+    '</div>'+
+    '<div style="border-top:.5px solid var(--bd);margin:12px 0;padding-top:12px;font-size:12px;font-weight:600;color:var(--tm)">挑戰期設定</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="nc_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option><option value="6">6個月</option></select></div>'+
+      '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="nc_pct" type="number" value="5"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">挑戰前體重(kg)</label><input class="fi" id="nc_sw" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">目標體重(kg)</label><input class="fi" id="nc_tw" type="number" step="0.1" placeholder="自動計算"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">開始日期</label><input class="fi" id="nc_sd" type="date" value="'+today()+'"/></div>'+
+      '<div class="fg"><label class="fl">驗收日期</label><input class="fi" id="nc_ed" type="date"/></div>'+
+    '</div>'+
+    '<div style="border-top:.5px solid var(--bd);margin:12px 0;padding-top:12px;font-size:12px;font-weight:600;color:var(--tm)"><i class="ti ti-cards"></i> 套用初始計劃卡（選填）</div>'+
+    '<div id="nc_plan_list"></div>'+
+    '<div class="fg"><label class="fl">備註</label><textarea class="fi" id="nc_no" rows="2"></textarea></div>'+
+    '<button class="btn btn-g btn-bl" id="saveNewCust"><i class="ti ti-check"></i> 儲存新增</button>';
+  openModal();
+  // render plan selector
+  var plist=$('nc_plan_list');
+  db.plans.forEach(function(pl){
+    var d=document.createElement('div');
+    d.className='sel-card'; d.dataset.pid=pl.id;
+    d.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between"><strong style="font-size:13px">'+pl.name+'</strong><span class="plan-badge plan-badge-'+pl.type+'">'+(pl.type==='weight'?'減重':pl.type==='fat'?'減脂':'兩者')+'</span></div>'+
+      '<div style="font-size:11px;color:var(--tm);margin-top:3px">'+pl.monthOneNotes.split('\n')[0]+'</div>';
+    d.onclick=function(){
+      qsa('.sel-card',plist).forEach(function(x){ x.classList.remove('on'); });
+      d.classList.toggle('on');
+    };
+    plist.appendChild(d);
+  });
+  // auto-calc target
+  function calcTw(){
+    var sw=parseFloat($('nc_sw').value)||0, pct=parseFloat($('nc_pct').value)||5;
+    if(sw>0) $('nc_tw').value=(sw*(1-pct/100)).toFixed(1);
+  }
+  on('nc_sw','oninput',calcTw); on('nc_pct','oninput',calcTw);
+  on('saveNewCust','onclick',function(){
+    var name=$('nc_n').value.trim(); if(!name){ toast('請輸入姓名'); return; }
+    var sw=parseFloat($('nc_sw').value)||0, pct=parseFloat($('nc_pct').value)||5;
+    var tw=parseFloat($('nc_tw').value)||+(sw*(1-pct/100)).toFixed(1);
+    var selCard=qs('.sel-card.on',plist);
+    var planId=selCard?+selCard.dataset.pid:null;
+    var planSupps=planId?(db.plans.find(function(x){ return x.id===planId; })||{supplements:[]}).supplements:[];
+    db.customers.push({id:Date.now(),name:name,gender:$('nc_g').value,height:parseFloat($('nc_h').value)||160,
+      age:parseInt($('nc_a').value)||30,category:$('nc_cat').value,phone:$('nc_ph').value,
+      health:$('nc_he').value||'無',allergy:$('nc_al').value||'無',
+      products:$('nc_pr').value||(planSupps.join('、')),lastBuyMethod:$('nc_bm').value,
+      lastBuyDate:$('nc_bd').value,createdDate:today(),lastVisitDate:today(),
+      beforePhoto:'',afterPhoto:'',note:$('nc_no').value,planId:planId,
+      periods:[{idx:0,label:'第1期',months:parseInt($('nc_m').value)||1,targetPct:pct,
+        startWeight:sw,targetWeight:tw,startDate:$('nc_sd').value,endDate:$('nc_ed').value,
+        supplements:planSupps,weeks:[]}]});
+    dbSave(); closeModal(); renderCustList(); renderCatTabs(); toast('✓ 已新增 '+name);
+  });
+}
+
+// ── edit customer ──
+function editCustomer(cid){
+  var c=db.customers.find(function(x){ return x.id===cid; });
+  $('mTitle').textContent='編輯顧客資料';
+  var catOpts=db.categories.map(function(cat){ return '<option'+(cat===c.category?' selected':'')+'>'+cat+'</option>'; }).join('');
+  $('mBody').innerHTML=
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">姓名</label><input class="fi" id="ec_n" value="'+c.name+'"/></div>'+
+      '<div class="fg"><label class="fl">性別</label><select class="fi" id="ec_g"><option'+(c.gender==='女'?' selected':'')+'>女</option><option'+(c.gender==='男'?' selected':'')+'>男</option></select></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">身高(cm)</label><input class="fi" id="ec_h" type="number" value="'+c.height+'"/></div>'+
+      '<div class="fg"><label class="fl">年齡</label><input class="fi" id="ec_a" type="number" value="'+c.age+'"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">所屬分類</label><select class="fi" id="ec_cat">'+catOpts+'</select></div>'+
+      '<div class="fg"><label class="fl">電話</label><input class="fi" id="ec_ph" value="'+(c.phone||'')+'"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="ec_he" value="'+c.health+'"/></div>'+
+      '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+c.allergy+'"/></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">備註</label><textarea class="fi" id="ec_no" rows="2">'+( c.note||'')+'</textarea></div>'+
+    '<button class="btn btn-g btn-bl" id="saveEditCust"><i class="ti ti-check"></i> 儲存</button>';
+  openModal();
+  on('saveEditCust','onclick',function(){
+    c.name=$('ec_n').value.trim()||c.name;
+    c.gender=$('ec_g').value; c.height=parseFloat($('ec_h').value)||c.height;
+    c.age=parseInt($('ec_a').value)||c.age; c.category=$('ec_cat').value;
+    c.phone=$('ec_ph').value; c.health=$('ec_he').value;
+    c.allergy=$('ec_al').value; c.note=$('ec_no').value;
+    dbSave(); closeModal(); renderDetail(); toast('✓ 已儲存');
+  });
+}
+
+// ── purchase edit ──
+function showPurchaseEdit(cid){
+  var c=db.customers.find(function(x){ return x.id===cid; });
+  var bmOpts=BUYMETHODS.map(function(m){ return '<option'+(m===c.lastBuyMethod?' selected':'')+'>'+m+'</option>'; }).join('');
+  $('mTitle').textContent='更新購買資訊';
+  $('mBody').innerHTML=
+    '<div class="fg"><label class="fl">搭配產品</label><input class="fi" id="pu_pr" value="'+(c.products||'')+'"/></div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">購買方式</label><select class="fi" id="pu_bm">'+bmOpts+'</select></div>'+
+      '<div class="fg"><label class="fl">購買日期</label><input class="fi" id="pu_bd" type="date" value="'+(c.lastBuyDate||today())+'"/></div>'+
+    '</div>'+
+    '<button class="btn btn-g btn-bl" id="savePuBtn"><i class="ti ti-check"></i> 儲存</button>';
+  openModal();
+  on('savePuBtn','onclick',function(){
+    c.products=$('pu_pr').value; c.lastBuyMethod=$('pu_bm').value; c.lastBuyDate=$('pu_bd').value;
+    dbSave(); closeModal(); renderDetail(); toast('✓ 已更新');
+  });
+}
+
+// ── change plan ──
+function showChangePlan(cid){
+  var c=db.customers.find(function(x){ return x.id===cid; });
+  $('mTitle').textContent='更換計劃卡';
+  $('mBody').innerHTML='<div id="cp_list"></div>'+
+    '<button class="btn btn-r btn-bl" id="clearPlanBtn" style="margin-top:4px"><i class="ti ti-x"></i> 移除計劃卡</button>'+
+    '<button class="btn btn-g btn-bl" id="saveCpBtn"><i class="ti ti-check"></i> 套用選擇</button>';
+  openModal();
+  var plist=$('cp_list');
+  db.plans.forEach(function(pl){
+    var d=document.createElement('div');
+    d.className='sel-card'+(c.planId===pl.id?' on':''); d.dataset.pid=pl.id;
+    d.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between"><strong>'+pl.name+'</strong><span class="plan-badge plan-badge-'+pl.type+'">'+(pl.type==='weight'?'減重':pl.type==='fat'?'減脂':'兩者')+'</span></div>'+
+      '<div style="font-size:11px;color:var(--tm);margin-top:3px">'+pl.monthOneNotes.split('\n')[0]+'</div>';
+    d.onclick=function(){
+      qsa('.sel-card',plist).forEach(function(x){ x.classList.remove('on'); });
+      d.classList.add('on');
+    };
+    plist.appendChild(d);
+  });
+  on('clearPlanBtn','onclick',function(){ c.planId=null; dbSave(); closeModal(); renderDetail(); toast('✓ 已移除計劃卡'); });
+  on('saveCpBtn','onclick',function(){
+    var sel=qs('.sel-card.on',plist);
+    if(sel) c.planId=+sel.dataset.pid;
+    dbSave(); closeModal(); renderDetail(); toast('✓ 已套用計劃卡');
+  });
+}
+
+// ── add period ──
+function showAddPeriod(cid){
+  var c=db.customers.find(function(x){ return x.id===cid; });
+  $('mTitle').textContent='新增挑戰期';
+  $('mBody').innerHTML=
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="ap_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option></select></div>'+
+      '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="ap_pct" type="number" value="5"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">起始體重(kg)</label><input class="fi" id="ap_sw" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">目標體重(kg)</label><input class="fi" id="ap_tw" type="number" step="0.1" placeholder="自動計算"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">開始日期</label><input class="fi" id="ap_sd" type="date" value="'+today()+'"/></div>'+
+      '<div class="fg"><label class="fl">驗收日期</label><input class="fi" id="ap_ed" type="date"/></div>'+
+    '</div>'+
+    '<button class="btn btn-g btn-bl" id="saveApBtn"><i class="ti ti-check"></i> 新增</button>';
+  openModal();
+  function calcTw2(){
+    var sw=parseFloat($('ap_sw').value)||0, pct=parseFloat($('ap_pct').value)||5;
+    if(sw>0) $('ap_tw').value=(sw*(1-pct/100)).toFixed(1);
+  }
+  on('ap_sw','oninput',calcTw2); on('ap_pct','oninput',calcTw2);
+  on('saveApBtn','onclick',function(){
+    var sw=parseFloat($('ap_sw').value)||0, pct=parseFloat($('ap_pct').value)||5;
+    var tw=parseFloat($('ap_tw').value)||+(sw*(1-pct/100)).toFixed(1);
+    var pi=c.periods.length;
+    c.periods.push({idx:pi,label:'第'+(pi+1)+'期',months:parseInt($('ap_m').value)||1,
+      targetPct:pct,startWeight:sw,targetWeight:tw,
+      startDate:$('ap_sd').value,endDate:$('ap_ed').value,supplements:[],weeks:[]});
+    currentPeriod=pi; dbSave(); closeModal(); renderDetail(); toast('✓ 第'+(pi+1)+'期已新增');
+  });
+}
+
+// ── note modal ──
+function showNote(cid,wi){
+  var p=db.customers.find(function(x){ return x.id===cid; }).periods[currentPeriod];
+  var w=p.weeks[wi];
+  $('mTitle').textContent=w.week+' ('+w.date+')';
+  $('mBody').innerHTML=
+    '<div class="ii-grid">'+
+      (w.waist?'<div class="ii"><div class="il">腰圍</div><div class="iv">'+w.waist+'cm</div></div>':'')+
+      (w.hip?'<div class="ii"><div class="il">臀圍</div><div class="iv">'+w.hip+'cm</div></div>':'')+
+      (w.thigh?'<div class="ii"><div class="il">大腿圍</div><div class="iv">'+w.thigh+'cm</div></div>':'')+
+      (w.arm?'<div class="ii"><div class="il">手臂圍</div><div class="iv">'+w.arm+'cm</div></div>':'')+
+    '</div>'+
+    (w.note?'<div class="hint-bar hint-info"><i class="ti ti-notes"></i><div>'+w.note+'</div></div>':'<div style="color:var(--tm);font-size:12px">無備註</div>');
+  openModal();
+}
+
+// ── upload photo ──
+function uploadPhoto(e,type,cid){
+  var c=db.customers.find(function(x){ return x.id===cid; });
+  var file=e.target.files[0]; if(!file) return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    if(type==='before') c.beforePhoto=ev.target.result;
+    else c.afterPhoto=ev.target.result;
+    dbSave(); renderDetail();
+  };
+  r.readAsDataURL(file);
+}
+
+// ── measurement input ──
+function goInput(cid){
+  currentCid=cid;
+  var c=db.customers.find(function(x){ return x.id===cid; });
+  var p=c.periods[currentPeriod];
+  var wn=p.weeks.length+1, wl=wn<=8?'第'+wn+'週':'驗收日';
+  var body=$('inputBody'); body.innerHTML='';
+  var suppHtml='<div class="tgrid" id="w_supps">';
+  SUPPS.forEach(function(s){
+    suppHtml+='<button class="tag'+(((p.supplements||[]).includes(s))?' on':'')+'" data-s="'+s+'">'+s+'</button>';
+  });
+  suppHtml+='</div>';
+  body.innerHTML=
+    '<div style="font-size:15px;font-weight:700;margin-bottom:12px">'+c.name+' ・ '+p.label+' '+wl+'</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">體重 (kg)*</label><input class="fi" id="w_wt" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">體年齡</label><input class="fi" id="w_ba" type="number"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">體脂肪 (%)</label><input class="fi" id="w_bf" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">內臟脂肪</label><input class="fi" id="w_vf" type="number" step="0.1"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">皮下脂肪</label><input class="fi" id="w_sf" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">基礎代謝</label><input class="fi" id="w_bmr" type="number"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">BMI</label><input class="fi" id="w_bmi" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">骨骼肌 (kg)</label><input class="fi" id="w_bm" type="number" step="0.1"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">腰圍 (cm)</label><input class="fi" id="w_wa" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">臀圍 (cm)</label><input class="fi" id="w_hi" type="number" step="0.1"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">大腿圍 (cm)</label><input class="fi" id="w_th" type="number" step="0.1"/></div>'+
+      '<div class="fg"><label class="fl">手臂圍 (cm)</label><input class="fi" id="w_ar" type="number" step="0.1"/></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">量測日期</label><input class="fi" id="w_dt" type="date" value="'+today()+'"/></div>'+
+    '<div class="fg"><label class="fl">保健品（本週有服用）</label>'+suppHtml+'</div>'+
+    '<div class="fg"><label class="fl">備註</label><textarea class="fi" id="w_nt" rows="2"></textarea></div>'+
+    '<button class="btn btn-g btn-bl" id="saveWkBtn"><i class="ti ti-check"></i> 儲存量測</button>';
+  goPage('pg-input');
+  qsa('#w_supps .tag',body).forEach(function(btn){
+    btn.onclick=function(){ btn.classList.toggle('on'); };
+  });
+  on('saveWkBtn','onclick',function(){
+    var wt=parseFloat($('w_wt').value); if(!wt){ toast('請輸入體重'); return; }
+    var supps=[].slice.call(qsa('#w_supps .on',body)).map(function(b){ return b.dataset.s; });
+    p.weeks.push({week:wl,date:$('w_dt').value,weight:wt,
+      bodyAge:parseFloat($('w_ba').value)||0,bodyFat:parseFloat($('w_bf').value)||0,
+      visceralFat:parseFloat($('w_vf').value)||0,subFat:parseFloat($('w_sf').value)||0,
+      bmr:parseInt($('w_bmr').value)||0,bmi:parseFloat($('w_bmi').value)||0,
+      boneMuscle:parseFloat($('w_bm').value)||0,waist:parseFloat($('w_wa').value)||0,
+      hip:parseFloat($('w_hi').value)||0,thigh:parseFloat($('w_th').value)||0,
+      arm:parseFloat($('w_ar').value)||0,note:$('w_nt').value,supplements:supps});
+    c.lastVisitDate=today(); dbSave(); goPage('pg-detail'); renderDetail(); toast('✓ 量測已儲存');
+  });
+}
+
+// ── reply modal ──
+function showReplyModal(rid,fromDaily){
+  var r=db.reports.find(function(x){ return x.id===rid; });
+  var selChips=r.reply?[r.reply]:[];
+  $('mTitle').textContent='回覆顧客';
+
+  function rebuild(){
+    var cats=[].concat([],db.templates.reduce(function(acc,t){ if(!acc.includes(t.category)) acc.push(t.category); return acc; },[]));
+    var chipsHtml=selChips.map(function(txt,i){
+      return '<span class="chip">'+txt+'<span class="chip-x" data-i="'+i+'">×</span></span>';
+    }).join('') || '<span style="font-size:12px;color:var(--th);padding:4px">點選模板加入…</span>';
+    $('mBody').innerHTML=
+      '<div style="background:var(--bg);padding:8px 10px;border-radius:var(--r1);margin-bottom:10px;font-size:12px;color:var(--tm)">'+(r.note||'（無備註）')+'</div>'+
+      '<div class="fl" style="margin-bottom:5px">📋 懶人包模板</div>'+
+      '<div class="ctabs" id="tmplCats">'+
+        cats.map(function(c,i){ return '<button class="ctab'+(i===0?' on':'')+'" data-cat="'+c+'">'+c+'</button>'; }).join('')+
+        '<button class="ctab" style="border-style:dashed;flex-shrink:0" id="tmplMgmtBtn"><i class="ti ti-settings" style="font-size:11px"></i></button>'+
+      '</div>'+
+      '<div id="tmplItems" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px"></div>'+
+      '<div class="fl" style="margin-bottom:4px">已選訊息</div>'+
+      '<div class="chips-wrap">'+chipsHtml+'</div>'+
+      '<button class="btn btn-o btn-sm" id="insertChipsBtn" style="width:100%;justify-content:center;margin-bottom:8px"><i class="ti ti-arrow-down"></i> 插入回覆框</button>'+
+      '<div class="fg"><label class="fl">最終回覆</label><textarea class="fi" id="rTxt" rows="4">'+(r.reply||'')+'</textarea></div>'+
+      '<button class="btn btn-g btn-bl" id="sendReplyBtn"><i class="ti ti-send"></i> 發送回覆</button>';
+    // show first category
+    showTmplCat(cats[0]);
+    // chip remove
+    qsa('.chip-x').forEach(function(btn){
+      btn.onclick=function(){ selChips.splice(+btn.dataset.i,1); rebuild(); };
+    });
+    // category tabs
+    qsa('#tmplCats .ctab[data-cat]').forEach(function(btn){
+      btn.onclick=function(){
+        qsa('#tmplCats .ctab').forEach(function(b){ b.classList.remove('on'); });
+        btn.classList.add('on'); showTmplCat(btn.dataset.cat);
+      };
+    });
+    on('tmplMgmtBtn','onclick',function(){ showTemplateMgmt(rid,fromDaily); });
+    on('insertChipsBtn','onclick',function(){
+      if(!selChips.length){ toast('請先選擇模板'); return; }
+      $('rTxt').value=selChips.join('\n');
+    });
+    on('sendReplyBtn','onclick',function(){
+      var t=$('rTxt').value.trim(); if(!t){ toast('請輸入回覆'); return; }
+      r.reply=t; dbSave(); closeModal();
+      if(fromDaily) renderNutriDaily(); else renderDetail();
+      toast('✓ 已送出');
+    });
+  }
+  function showTmplCat(cat){
+    var items=db.templates.filter(function(t){ return t.category===cat; });
+    var wrap=$('tmplItems'); if(!wrap) return;
+    wrap.innerHTML='';
+    items.forEach(function(t){
+      var b=document.createElement('button');
+      b.className='tag'; b.textContent=t.text.length>20?t.text.slice(0,20)+'…':t.text;
+      b.onclick=function(){
+        if(!selChips.includes(t.text)){ selChips.push(t.text); rebuild(); }
+      };
+      wrap.appendChild(b);
+    });
+  }
+  openModal(); rebuild();
+}
+
+// ── template management ──
+function showTemplateMgmt(rid,fromDaily){
+  $('mTitle').textContent='管理回覆模板';
+  function rebuildTmplList(){
+    var list=$('tmplMgmtList'); if(!list) return;
+    list.innerHTML='';
+    db.templates.forEach(function(t){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:.5px solid var(--bd);';
+      row.innerHTML='<span style="font-size:10px;background:var(--gl);color:var(--gd);padding:2px 7px;border-radius:10px;flex-shrink:0">'+t.category+'</span>'+
+        '<span style="flex:1;font-size:12px">'+t.text+'</span>'+
+        '<button class="nbtn del-tmpl" data-tid="'+t.id+'" style="color:var(--re)"><i class="ti ti-trash"></i></button>';
+      list.appendChild(row);
+    });
+    qsa('.del-tmpl',list).forEach(function(btn){
+      btn.onclick=function(){
+        if(!confirm('刪除此模板？')) return;
+        db.templates=db.templates.filter(function(x){ return x.id!==+btn.dataset.tid; });
+        dbSave(); rebuildTmplList();
+      };
+    });
+  }
+  var cats=[].concat([],db.templates.reduce(function(acc,t){ if(!acc.includes(t.category)) acc.push(t.category); return acc; },[]));
+  var datalist=cats.map(function(c){ return '<option>'+c+'</option>'; }).join('');
+  $('mBody').innerHTML=
+    '<div id="tmplMgmtList"></div>'+
+    '<div style="border-top:.5px solid var(--bd);margin-top:10px;padding-top:12px;font-size:12px;font-weight:600;color:var(--tm)">新增模板</div>'+
+    '<div class="fr" style="margin-top:8px">'+
+      '<div class="fg"><label class="fl">分類</label><input class="fi" id="nt_cat" placeholder="鼓勵" list="nt_catdl"/><datalist id="nt_catdl">'+datalist+'</datalist></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">模板文字</label><textarea class="fi" id="nt_txt" rows="2" placeholder="輸入常用回覆文字…"></textarea></div>'+
+    '<button class="btn btn-g btn-bl" id="saveTmplBtn"><i class="ti ti-plus"></i> 新增</button>'+
+    '<button class="btn btn-o btn-bl" id="backReplyBtn" style="margin-top:6px"><i class="ti ti-arrow-left"></i> 返回回覆</button>';
+  rebuildTmplList();
+  on('saveTmplBtn','onclick',function(){
+    var cat=$('nt_cat').value.trim(), txt=$('nt_txt').value.trim();
+    if(!cat||!txt){ toast('請填寫分類和內容'); return; }
+    db.templates.push({id:Date.now(),category:cat,text:txt});
+    $('nt_cat').value=''; $('nt_txt').value='';
+    dbSave(); rebuildTmplList(); toast('✓ 已新增');
+  });
+  on('backReplyBtn','onclick',function(){ showReplyModal(rid,fromDaily); });
+}
+
+// ── follow-up ──
+function renderFollowUp(){
+  var s=db.followUpSettings;
+  var all=db.customers;
+  var danger=all.filter(function(c){ return getFollowUpStatus(c).status==='danger'; });
+  var warn=all.filter(function(c){ return getFollowUpStatus(c).status==='warn'; });
+  var ok=all.filter(function(c){ return getFollowUpStatus(c).status==='ok'; });
+  var body=$('followupBody'); body.innerHTML='';
+
+  // stats
+  var stats=el('div','');
+  stats.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:12px">'+
+      '<div style="background:var(--rl);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--re)">'+danger.length+'</div><div style="font-size:11px;color:var(--re)">危險</div></div>'+
+      '<div style="background:var(--ol);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:var(--or)">'+warn.length+'</div><div style="font-size:11px;color:var(--or)">積極</div></div>'+
+      '<div style="background:#f0fdf4;border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:20px;font-weight:700;color:#15803d">'+ok.length+'</div><div style="font-size:11px;color:#15803d">正常</div></div>'+
+    '</div>'+
+    '<div style="background:var(--al);border-radius:var(--r1);padding:10px;margin-bottom:12px;font-size:12px;color:#6b4c10">'+
+      '<i class="ti ti-info-circle"></i> 新顧客（≤'+s.newCustomerDays+'天）：每 <strong>'+s.newFreqDays+' 天</strong>・舊顧客：每 <strong>'+s.oldFreqDays+' 天</strong>回訪'+
+    '</div>';
+  body.appendChild(stats);
+
+  function addGroup(title,cls,arr){
+    if(!arr.length) return;
+    var g=el('div',''); 
+    g.innerHTML='<div style="font-size:12px;font-weight:600;margin-bottom:7px;color:'+(cls==='fu-danger'?'var(--re)':cls==='fu-warn'?'var(--or)':'#15803d')+'"><i class="ti ti-'+(cls==='fu-danger'?'alert-circle':cls==='fu-warn'?'alert-triangle':'circle-check')+'"></i> '+title+'</div>';
+    arr.forEach(function(c){
+      var fu=getFollowUpStatus(c);
+      var card=document.createElement('div');
+      card.className='fu-card '+cls;
+      card.innerHTML=
+        '<div class="av" style="width:34px;height:34px;font-size:13px">'+c.name[0]+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-weight:500;font-size:13px;display:flex;align-items:center;gap:5px">'+c.name+'<span class="sbadge '+fu.cls+'">'+fu.label+'</span></div>'+
+          '<div style="font-size:11px;color:var(--tm)">'+(c.category||'未分類')+'・'+(fu.isNew?'新顧客':'舊顧客')+'</div>'+
+        '</div>'+
+        '<div style="text-align:right"><div style="font-size:12px;font-weight:600">'+fu.daysSinceVisit+' 天</div><div style="font-size:10px;color:var(--tm)">建議'+fu.freqDays+'天/次</div></div>';
+      card.onclick=function(){ openCustomer(c.id); };
+      g.appendChild(card);
+    });
+    body.appendChild(g);
+  }
+  addGroup('危險','fu-danger',danger);
+  addGroup('積極','fu-warn',warn);
+  addGroup('正常','fu-ok',ok);
+}
+
+function showFollowUpSettings(){
+  var s=db.followUpSettings;
+  $('mTitle').textContent='回訪設定';
+  $('mBody').innerHTML=
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">新顧客定義（天內）</label><input class="fi" id="fs_nc" type="number" value="'+s.newCustomerDays+'"/></div>'+
+      '<div class="fg"><label class="fl">新顧客回訪頻率（天）</label><input class="fi" id="fs_nf" type="number" value="'+s.newFreqDays+'"/></div>'+
+    '</div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">舊顧客回訪頻率（天）</label><input class="fi" id="fs_of" type="number" value="'+s.oldFreqDays+'"/></div>'+
+      '<div class="fg"><label class="fl">積極門檻（超過幾天）</label><input class="fi" id="fs_wd" type="number" value="'+s.warnDays+'"/></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">危險門檻（超過幾天）</label><input class="fi" id="fs_dd" type="number" value="'+s.dangerDays+'"/></div>'+
+    '<button class="btn btn-g btn-bl" id="saveFsBtn"><i class="ti ti-check"></i> 儲存</button>';
+  openModal();
+  on('saveFsBtn','onclick',function(){
+    s.newCustomerDays=parseInt($('fs_nc').value)||90;
+    s.newFreqDays=parseInt($('fs_nf').value)||7;
+    s.oldFreqDays=parseInt($('fs_of').value)||30;
+    s.warnDays=parseInt($('fs_wd').value)||5;
+    s.dangerDays=parseInt($('fs_dd').value)||10;
+    dbSave(); closeModal(); renderFollowUp(); toast('✓ 已儲存');
+  });
+}
+
+// ── plans ──
+function renderPlans(){
+  var body=$('planList'); body.innerHTML='';
+  if(!db.plans.length){
+    body.innerHTML='<div class="empty"><i class="ti ti-cards"></i><p>尚無計劃卡</p></div>'; return;
+  }
+  var typeLabel={weight:'減重為主',fat:'減脂為主',both:'兩者兼顧'};
+  var headCls={weight:'plan-head-w',fat:'plan-head-f',both:'plan-head-b'};
+  var bdgCls={weight:'plan-badge-w',fat:'plan-badge-f',both:'plan-badge-b'};
+  db.plans.forEach(function(pl){
+    var card=document.createElement('div'); card.className='plan-card';
+    var suppHtml=pl.supplements&&pl.supplements.length?
+      '<div class="plan-sec-title"><i class="ti ti-pill"></i>建議保健品</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:4px">'+pl.supplements.map(function(s){ return '<span class="chip">'+s+'</span>'; }).join('')+'</div>':'';
+    card.innerHTML=
+      '<div class="'+headCls[pl.type]+'" style="padding:11px 12px;display:flex;align-items:center;justify-content:space-between">'+
+        '<div><div style="font-size:14px;font-weight:700">'+pl.name+'</div>'+
+          '<div style="font-size:11px;color:var(--tm);margin-top:2px">飲水：'+pl.waterGoal+'・運動：'+pl.exerciseFreq+'</div></div>'+
+        '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">'+
+          '<span class="plan-badge '+bdgCls[pl.type]+'">'+typeLabel[pl.type]+'</span>'+
+          '<div style="display:flex;gap:4px">'+
+            '<button class="nbtn edit-plan" data-pid="'+pl.id+'"><i class="ti ti-edit"></i></button>'+
+            '<button class="nbtn del-plan" data-pid="'+pl.id+'" style="color:var(--re)"><i class="ti ti-trash"></i></button>'+
+          '</div></div>'+
+      '</div>'+
+      '<div class="plan-body">'+
+        (pl.forbidFoods?'<div class="plan-sec-title"><i class="ti ti-ban"></i>禁忌食物</div><div style="font-size:12px;color:var(--tx)">'+pl.forbidFoods+'</div>':'')+
+        (pl.monthOneNotes?'<div class="plan-sec-title" style="color:var(--re)"><i class="ti ti-star"></i>第一個月注意事項</div><div style="font-size:12px;white-space:pre-wrap;line-height:1.7">'+pl.monthOneNotes+'</div>':'')+
+        (pl.weightAlert?'<div class="hint-bar hint-warn" style="margin-top:8px"><i class="ti ti-scale"></i><div>減重：'+pl.weightAlert+'</div></div>':'')+
+        (pl.fatAlert?'<div class="hint-bar hint-info"><i class="ti ti-percentage"></i><div>減脂：'+pl.fatAlert+'</div></div>':'')+
+        suppHtml+
+        (pl.notes?'<div class="plan-sec-title"><i class="ti ti-notes"></i>備註</div><div style="font-size:12px">'+pl.notes+'</div>':'')+
+      '</div>';
+    qsa('.edit-plan',card).forEach(function(b){ b.onclick=function(){ showEditPlan(pl.id); }; });
+    qsa('.del-plan',card).forEach(function(b){ b.onclick=function(){
+      if(!confirm('確定刪除此計劃卡？')) return;
+      db.plans=db.plans.filter(function(x){ return x.id!==pl.id; });
+      dbSave(); renderPlans(); toast('✓ 已刪除');
+    }; });
+    body.appendChild(card);
+  });
+}
+
+function showEditPlan(pid){
+  var pl=pid?db.plans.find(function(x){ return x.id===pid; }):null;
+  $('mTitle').textContent=pl?'編輯計劃卡':'新增計劃卡';
+  var suppHtml='<div class="tgrid" id="ep_supps">';
+  SUPPS.forEach(function(s){
+    suppHtml+='<button class="tag'+(pl&&pl.supplements&&pl.supplements.includes(s)?' on':'')+'" data-s="'+s+'">'+s+'</button>';
+  });
+  suppHtml+='</div>';
+  $('mBody').innerHTML=
+    '<div class="fg"><label class="fl">計劃名稱 *</label><input class="fi" id="ep_name" value="'+(pl?pl.name:'')+'" placeholder="例：標準減重計劃"/></div>'+
+    '<div class="fg"><label class="fl">類型</label><select class="fi" id="ep_type">'+
+      '<option value="weight"'+(!pl||pl.type==='weight'?' selected':'')+'>減重為主</option>'+
+      '<option value="fat"'+(pl&&pl.type==='fat'?' selected':'')+'>減脂為主</option>'+
+      '<option value="both"'+(pl&&pl.type==='both'?' selected':'')+'>兩者兼顧</option>'+
+    '</select></div>'+
+    '<div class="fr">'+
+      '<div class="fg"><label class="fl">飲水目標</label><input class="fi" id="ep_water" value="'+(pl?pl.waterGoal:'')+'" placeholder="每天2000c.c."/></div>'+
+      '<div class="fg"><label class="fl">睡眠目標</label><input class="fi" id="ep_sleep" value="'+(pl?pl.sleepGoal:'')+'" placeholder="7小時以上"/></div>'+
+    '</div>'+
+    '<div class="fg"><label class="fl">運動建議</label><input class="fi" id="ep_ex" value="'+(pl?pl.exerciseFreq:'')+'" placeholder="每週3次有氧"/></div>'+
+    '<div class="fg"><label class="fl">禁忌食物</label><input class="fi" id="ep_forbid" value="'+(pl?pl.forbidFoods:'')+'" placeholder="精緻澱粉…"/></div>'+
+    '<div class="fg"><label class="fl" style="color:var(--re)">⭐ 第一個月注意事項</label><textarea class="fi" id="ep_m1" rows="5" placeholder="按Enter換行…">'+(pl?pl.monthOneNotes:'')+'</textarea></div>'+
+    '<div class="fg"><label class="fl">減重值得注意</label><textarea class="fi" id="ep_wa" rows="2">'+(pl?pl.weightAlert:'')+'</textarea></div>'+
+    '<div class="fg"><label class="fl">減脂值得注意</label><textarea class="fi" id="ep_fa" rows="2">'+(pl?pl.fatAlert:'')+'</textarea></div>'+
+    '<div class="fg"><label class="fl">建議保健品</label>'+suppHtml+'</div>'+
+    '<div class="fg"><label class="fl">其他備註</label><textarea class="fi" id="ep_notes" rows="2">'+(pl?pl.notes||'':'')+'</textarea></div>'+
+    '<button class="btn btn-g btn-bl" id="savePlanBtn"><i class="ti ti-check"></i> '+(pl?'儲存':'新增計劃卡')+'</button>';
+  openModal();
+  qsa('#ep_supps .tag').forEach(function(b){ b.onclick=function(){ b.classList.toggle('on'); }; });
+  on('savePlanBtn','onclick',function(){
+    var name=$('ep_name').value.trim(); if(!name){ toast('請輸入計劃名稱'); return; }
+    var supps=[].slice.call(qsa('#ep_supps .on')).map(function(b){ return b.dataset.s; });
+    var data={name:name,type:$('ep_type').value,waterGoal:$('ep_water').value,sleepGoal:$('ep_sleep').value,
+      exerciseFreq:$('ep_ex').value,forbidFoods:$('ep_forbid').value,monthOneNotes:$('ep_m1').value,
+      weightAlert:$('ep_wa').value,fatAlert:$('ep_fa').value,supplements:supps,notes:$('ep_notes').value};
+    if(pl){ Object.assign(pl,data); } else { db.plans.push(Object.assign({id:Date.now()},data)); }
+    dbSave(); closeModal(); renderPlans(); toast('✓ 已儲存');
+  });
+}
+
+// ── nutritionist daily ──
+function renderNutriDaily(){
+  var body=$('dailyBody'); body.innerHTML='';
+  var today_reports=db.reports.filter(function(r){ return r.date===today(); });
+  var pending=db.reports.filter(function(r){ return !r.reply; });
+  var stats=el('div','');
+  stats.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+      '<div style="background:var(--gl);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--gd)">'+today_reports.length+'</div><div style="font-size:11px;color:var(--gd)">今日回報</div></div>'+
+      '<div style="background:var(--rl);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--re)">'+pending.length+'</div><div style="font-size:11px;color:var(--re)">待回覆</div></div>'+
+    '</div>';
+  body.appendChild(stats);
+  if(!db.reports.length){
+    body.innerHTML+='<div class="empty"><i class="ti ti-messages"></i><p>尚無顧客回報</p></div>'; return;
+  }
+  var sorted=db.reports.slice().sort(function(a,b){ return a.date>b.date?-1:1; });
+  sorted.forEach(function(r){
+    var c=db.customers.find(function(x){ return x.id===r.customerId; });
+    var cname=c?c.name:'已刪除';
+    var card=document.createElement('div'); card.className='card';
+    card.innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<div class="av" style="width:32px;height:32px;font-size:12px">'+cname[0]+'</div>'+
+          '<div><div style="font-size:13px;font-weight:500">'+cname+'</div><div style="font-size:11px;color:var(--tm)">'+r.date+'</div></div>'+
+        '</div>'+
+        (r.reply?'<span class="sbadge sb-ok">已回覆</span>':'<span class="sbadge sb-danger">待回覆</span>')+
+      '</div>'+
+      (function(){
+        var qaMap2={'今天喝水達標了嗎？':'💧','今天有運動嗎？':'🏃','今天睡眠品質？':'😴','今天飲食控制？':'🥗','今天有吃保健品嗎？':'💊','今天身體感覺？':'❤️'};
+        var qh='';
+        if(r.qa&&Object.keys(r.qa).length){
+          qh='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">';
+          Object.keys(r.qa).forEach(function(q){ qh+='<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg);border:.5px solid var(--bm)">'+(qaMap2[q]||'•')+' '+r.qa[q]+'</span>'; });
+          qh+='</div>';
+        }
+        var ph='';
+        if(r.photos&&r.photos.length){ ph='<div class="photo-grid" style="margin-bottom:6px">'; r.photos.forEach(function(p){ ph+='<div class="photo-slot"><img src="'+p+'"/></div>'; }); ph+='</div>'; }
+        card.innerHTML+=qh+(r.note?'<div style="font-size:12px;line-height:1.6;background:var(--bg);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.note+'</div>':'')+ph+(r.supps&&r.supps.length?'<div style="font-size:11px;color:var(--tm);margin-bottom:6px">💊 '+r.supps.join('、')+'</div>':'')+(r.reply?'<div style="font-size:12px;background:var(--gl);color:var(--gd);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.reply+'</div>':'')+'<button class="btn btn-o btn-sm nd-reply" data-rid="'+r.id+'" style="width:100%;justify-content:center"><i class="ti ti-send"></i> '+(r.reply?'修改回覆':'回覆')+'</button>';
+      })();
+    body.appendChild(card);
+  });
+  qsa('.nd-reply',body).forEach(function(btn){
+    btn.onclick=function(){ showReplyModal(+btn.dataset.rid,true); };
+  });
+}
+
+// ── customer daily ──
+function renderCustomerDaily(){
+  var body=$('custDailyBody'); body.innerHTML='';
+  var qa={}; QA.forEach(function(q){ qa[q.q]=''; });
+  var supps=[];
+
+  // QA section
+  var qaCard=el('div','card');
+  qaCard.innerHTML='<div class="card-title"><i class="ti ti-clipboard-check"></i> 今日快速回報</div>';
+  QA.forEach(function(q,qi){
+    var qrow=document.createElement('div');
+    qrow.innerHTML='<div class="qa-q">'+q.q+'</div><div class="qa-opts">';
+    q.opts.forEach(function(o){
+      qrow.innerHTML+='<button class="qo" data-qi="'+qi+'" data-o="'+o+'">'+o+'</button>';
+    });
+    qrow.innerHTML+='</div>';
+    qsa('.qo',qrow).forEach(function(btn){
+      btn.onclick=function(){
+        qsa('.qo[data-qi="'+qi+'"]',qaCard).forEach(function(b){ b.classList.remove('on'); });
+        btn.classList.add('on'); qa[q.q]=btn.dataset.o;
+      };
+    });
+    qaCard.appendChild(qrow);
+  });
+  body.appendChild(qaCard);
+
+  // supplements
+  var suppCard=el('div','card');
+  suppCard.innerHTML='<div class="card-title"><i class="ti ti-pill"></i> 今日保健品</div><div class="tgrid" id="cs_supps"></div>';
+  body.appendChild(suppCard);
+  SUPPS.forEach(function(s){
+    var b=document.createElement('button'); b.className='tag'; b.textContent=s;
+    b.onclick=function(){
+      b.classList.toggle('on');
+      if(b.classList.contains('on')){ supps.push(s); } else { supps=supps.filter(function(x){ return x!==s; }); }
+    };
+    $('cs_supps').appendChild(b);
+  });
+
+  // diary
+  var diaryCard=el('div','card');
+  diaryCard.innerHTML=
+    '<div class="card-title"><i class="ti ti-pencil"></i> 飲食日記</div>'+
+    '<div class="fg"><label class="fl">今天吃了什麼？</label><textarea class="fi" id="cs_note" rows="3" placeholder="早餐：…&#10;午餐：…&#10;晚餐：…"></textarea></div>';
+  body.appendChild(diaryCard);
+
+  // meal photos
+  var photos=[];
+  var photoCard=el('div','card');
+  photoCard.innerHTML=
+    '<div class="card-title"><i class="ti ti-camera"></i> 餐點照片 <span style="font-size:11px;font-weight:400;color:var(--th)">（可上傳早午晚餐+點心）</span></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px" id="meal_slots">'+
+      '<div class="photo-slot meal-slot" data-label="早餐"><i class="ti ti-sun" style="font-size:18px;color:var(--th)"></i><div style="font-size:9px;color:var(--th);margin-top:3px">早餐</div></div>'+
+      '<div class="photo-slot meal-slot" data-label="午餐"><i class="ti ti-brightness" style="font-size:18px;color:var(--th)"></i><div style="font-size:9px;color:var(--th);margin-top:3px">午餐</div></div>'+
+      '<div class="photo-slot meal-slot" data-label="晚餐"><i class="ti ti-moon" style="font-size:18px;color:var(--th)"></i><div style="font-size:9px;color:var(--th);margin-top:3px">晚餐</div></div>'+
+      '<div class="photo-slot meal-slot" data-label="點心"><i class="ti ti-cookie" style="font-size:18px;color:var(--th)"></i><div style="font-size:9px;color:var(--th);margin-top:3px">點心</div></div>'+
+    '</div>'+
+    '<input type="file" id="meal_file_input" accept="image/*" style="display:none"/>'+
+    '<button class="btn btn-o btn-sm" id="addMorePhotoBtn"><i class="ti ti-plus"></i> 新增其他照片</button>'+
+    '<div id="extra_photos" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>';
+  body.appendChild(photoCard);
+
+  var currentMealSlot=null;
+  var mealPhotos={};
+
+  qsa('.meal-slot',photoCard).forEach(function(slot){
+    slot.onclick=function(){
+      currentMealSlot=slot;
+      $('meal_file_input').click();
+    };
+  });
+  $('meal_file_input').onchange=function(e){
+    var file=e.target.files[0]; if(!file) return;
+    var label=currentMealSlot?currentMealSlot.dataset.label:'其他';
+    var r2=new FileReader();
+    r2.onload=function(ev){
+      mealPhotos[label]=ev.target.result;
+      photos=Object.values(mealPhotos);
+      if(currentMealSlot){
+        currentMealSlot.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r1)"/>';
+      }
+    };
+    r2.readAsDataURL(file);
+    $('meal_file_input').value='';
+  };
+  on('addMorePhotoBtn','onclick',function(){
+    var inp=document.createElement('input');
+    inp.type='file'; inp.accept='image/*';
+    inp.onchange=function(e){
+      var file=e.target.files[0]; if(!file) return;
+      var r3=new FileReader();
+      r3.onload=function(ev){
+        photos.push(ev.target.result);
+        var thumb=document.createElement('div');
+        thumb.className='photo-slot';
+        thumb.style.cssText='width:70px;height:70px;flex-shrink:0';
+        thumb.innerHTML='<img src="'+ev.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r1)"/>';
+        $('extra_photos').appendChild(thumb);
+      };
+      r3.readAsDataURL(file);
+    };
+    inp.click();
+  });
+
+  // submit
+  var submitBtn=el('button','btn btn-g btn-bl');
+  submitBtn.innerHTML='<i class="ti ti-send"></i> 送出今日回報';
+  submitBtn.onclick=function(){
+    var note=$('cs_note').value.trim();
+    var c=db.customers.find(function(x){ return x.name===currentUser; });
+    var cid=c?c.id:0;
+    db.reports.push({id:Date.now(),customerId:cid,date:today(),qa:qa,supps:supps,note:note,reply:'',photos:photos.slice()});
+    dbSave(); toast('✓ 回報已送出！');
+    renderCustomerDaily();
+  };
+  body.appendChild(submitBtn);
+}
+
+// ── my progress (customer) ──
+function renderMyProgress(){
+  var body=$('progressBody'); body.innerHTML='';
+  var c=db.customers.find(function(x){ return x.name===currentUser; })||db.customers[0];
+  if(!c){ body.innerHTML='<div class="empty"><i class="ti ti-user-off"></i><p>找不到您的資料</p></div>'; return; }
+  var p=c.periods[c.periods.length-1], weeks=p.weeks;
+  var last=weeks.length?weeks[weeks.length-1].weight:p.startWeight;
+  var lost=+(p.startWeight-last).toFixed(1), needed=+(p.startWeight-p.targetWeight).toFixed(1);
+  var pct=needed>0?Math.min(100,Math.round(lost/needed*100)):0;
+
+  body.innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+      '<div class="av" style="width:46px;height:46px;font-size:18px">'+c.name[0]+'</div>'+
+      '<div><div style="font-size:17px;font-weight:700">'+c.name+'</div><div style="font-size:12px;color:var(--tm)">'+c.height+'cm・'+c.age+'歲</div></div>'+
+    '</div>'+
+    '<div class="banner"><h3>挑戰 '+p.months+' 個月・目標減 '+p.targetPct+'%</h3>'+
+      '<div class="big">'+last+'<span style="font-size:15px;font-weight:400"> kg</span></div>'+
+      '<div class="sub">目標 '+p.targetWeight+'kg・還差 '+Math.max(0,+(needed-lost).toFixed(1))+'kg</div>'+
+    '</div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>目標進度</span><strong style="color:var(--g)">'+pct+'%</strong></div>'+
+    '<div class="pt" style="margin-bottom:14px"><div class="pf" style="width:'+pct+'%"></div></div>';
+
+  // plan notes
+  var pl=c.planId?db.plans.find(function(x){ return x.id===c.planId; }):null;
+  if(pl){
+    var planDiv=document.createElement('div'); planDiv.className='card';
+    planDiv.innerHTML='<div class="card-title"><i class="ti ti-cards"></i> 我的計劃</div>'+
+      '<div style="font-size:13px;font-weight:600;margin-bottom:6px">'+pl.name+'</div>'+
+      '<div style="font-size:12px;background:var(--bg);padding:9px;border-radius:var(--r1);white-space:pre-wrap;line-height:1.7">'+pl.monthOneNotes+'</div>';
+    body.appendChild(planDiv);
+  }
+
+  // photos
+  if(c.beforePhoto||c.afterPhoto){
+    var phCard=document.createElement('div'); phCard.className='card';
+    phCard.innerHTML='<div class="card-title"><i class="ti ti-camera"></i> 前後對比</div>'+
+      '<div class="bafoto">'+
+        '<div><div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:4px">挑戰前</div>'+
+          '<div class="bafoto-ph">'+(c.beforePhoto?'<img src="'+c.beforePhoto+'"/>':'')+'</div></div>'+
+        '<div><div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:4px">挑戰後</div>'+
+          '<div class="bafoto-ph">'+(c.afterPhoto?'<img src="'+c.afterPhoto+'"/>':'')+'</div></div>'+
+      '</div>';
+    body.appendChild(phCard);
+  }
+
+  // chart
+  var chartCard=document.createElement('div'); chartCard.className='card';
+  chartCard.innerHTML='<div class="card-title"><i class="ti ti-chart-line"></i> 體重趨勢</div><div class="chwrap"><canvas id="myChart"></canvas></div>';
+  body.appendChild(chartCard);
+
+  // table
+  var tblCard=document.createElement('div'); tblCard.className='card';
+  var tbl='<div class="card-title"><i class="ti ti-table"></i> 歷週記錄</div>';
+  if(weeks.length){
+    tbl+='<div class="twrap"><table class="wt"><thead><tr><th>週次</th><th>日期</th><th>體重</th><th>體脂</th><th>BMI</th><th>腰圍</th></tr></thead><tbody>';
+    weeks.forEach(function(w){ tbl+='<tr><td>'+w.week+'</td><td>'+w.date+'</td><td><strong>'+w.weight+'kg</strong></td><td>'+w.bodyFat+'%</td><td>'+w.bmi+'</td><td>'+(w.waist||'—')+'cm</td></tr>'; });
+    tbl+='</tbody></table></div>';
+  } else { tbl+='<div style="text-align:center;padding:12px;color:var(--tm);font-size:12px">尚無記錄</div>'; }
+  tblCard.innerHTML=tbl;
+  body.appendChild(tblCard);
+
+  setTimeout(function(){
+    var ctx=$('myChart'); if(!ctx) return;
+    if(ctx._ch) ctx._ch.destroy();
+    ctx._ch=new Chart(ctx,{type:'line',data:{labels:[p.startDate].concat(weeks.map(function(w){ return w.date; })),datasets:[{data:[p.startWeight].concat(weeks.map(function(w){ return w.weight; })),borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.08)',tension:0.4,pointBackgroundColor:'#1D9E75',pointRadius:4,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{font:{size:10}}},x:{ticks:{font:{size:9}},grid:{display:false}}}}});
+  },150);
+}
+
+// ── dealer ──
+function renderDealer(){
+  var body=$('dealerBody'); body.innerHTML='';
+  var u=db.users.find(function(x){ return x.name===currentUser; });
+  var cat=u&&u.dealerCategory?u.dealerCategory:'';
+  var custs=cat?db.customers.filter(function(c){ return c.category===cat; }):db.customers;
+  var danger=custs.filter(function(c){ return getFollowUpStatus(c).status==='danger'; }).length;
+  var warn=custs.filter(function(c){ return getFollowUpStatus(c).status==='warn'; }).length;
+
+  var hdr=el('div','');
+  hdr.innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+      '<div class="av" style="width:44px;height:44px;font-size:16px">'+currentUser[0]+'</div>'+
+      '<div><div style="font-size:16px;font-weight:700">'+currentUser+'</div>'+
+        '<div style="font-size:12px;color:var(--tm)">經銷商'+(cat?'・分類：'+cat:'')+'</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px">'+
+      '<div style="background:var(--gl);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--gd)">'+custs.length+'</div><div style="font-size:10px;color:var(--gd)">顧客總數</div></div>'+
+      '<div style="background:var(--ol);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--or)">'+warn+'</div><div style="font-size:10px;color:var(--or)">積極</div></div>'+
+      '<div style="background:var(--rl);border-radius:var(--r1);padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--re)">'+danger+'</div><div style="font-size:10px;color:var(--re)">危險</div></div>'+
+    '</div>'+
+    '<div style="font-size:14px;font-weight:600;margin-bottom:10px">顧客體重狀況</div>';
+  body.appendChild(hdr);
+
+  custs.forEach(function(c){
+    var p=c.periods[c.periods.length-1];
+    var last=p.weeks.length?p.weeks[p.weeks.length-1].weight:p.startWeight;
+    var lost=+(p.startWeight-last).toFixed(1), needed=+(p.startWeight-p.targetWeight).toFixed(1);
+    var pct=needed>0?Math.min(100,Math.round(lost/needed*100)):0;
+    var fu=getFollowUpStatus(c);
+    var card=document.createElement('div'); card.className='dealer-cust';
+    card.innerHTML=
+      '<div class="av" style="width:36px;height:36px;font-size:13px">'+c.name[0]+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:5px">'+c.name+'<span class="sbadge '+fu.cls+'">'+fu.label+'</span></div>'+
+        '<div style="font-size:11px;color:var(--tm)">'+last+'kg・目標'+p.targetWeight+'kg・↓'+lost+'kg</div>'+
+        '<div class="pt" style="margin-top:4px"><div class="pf" style="width:'+pct+'%"></div></div>'+
+      '</div>'+
+      '<div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700;color:var(--g)">'+pct+'%</div><div style="font-size:10px;color:var(--tm)">達成</div></div>';
+    body.appendChild(card);
+  });
+}
+
+// ── guide ──
+function switchGuide(tab){
+  currentGuideTab=tab;
+  $('gt0').classList.toggle('on',tab===0);
+  $('gt1').classList.toggle('on',tab===1);
+  renderGuide();
+}
+function renderGuide(){
+  var body=$('guideList'); body.innerHTML='';
+  $('addGuideBtn').style.display=role==='nutritionist'?'flex':'none';
+  var items=db.guides.filter(function(g){ return g.category===currentGuideTab; });
+  if(!items.length){ body.innerHTML='<div class="empty"><i class="ti ti-book"></i><p>尚無文章</p></div>'; return; }
+  items.forEach(function(g){
+    var card=document.createElement('div'); card.className='guide-item';
+    card.innerHTML=
+      (g.img?'<img class="guide-img" src="'+g.img+'"/>':'')+
+      '<div class="guide-body">'+
+        '<div style="font-size:14px;font-weight:600;margin-bottom:5px">'+g.title+'</div>'+
+        '<div style="font-size:12px;color:var(--tm);line-height:1.7">'+g.text+'</div>'+
+        '<div style="font-size:11px;color:var(--th);margin-top:6px">'+g.date+'</div>'+
+        (role==='nutritionist'?'<div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-o btn-sm edit-guide" data-gid="'+g.id+'"><i class="ti ti-edit"></i> 編輯</button><button class="btn btn-r btn-sm del-guide" data-gid="'+g.id+'"><i class="ti ti-trash"></i></button></div>':'')+
+      '</div>';
+    body.appendChild(card);
+  });
+  qsa('.edit-guide',body).forEach(function(b){ b.onclick=function(){ editGuide(+b.dataset.gid); }; });
+  qsa('.del-guide',body).forEach(function(b){ b.onclick=function(){
+    if(!confirm('確定刪除？')) return;
+    db.guides=db.guides.filter(function(x){ return x.id!==+b.dataset.gid; });
+    dbSave(); renderGuide(); toast('✓ 已刪除');
+  }; });
+}
+function showAddGuide(){ editGuide(null); }
+function editGuide(id){
+  var g=id?db.guides.find(function(x){ return x.id===id; }):null;
+  $('mTitle').textContent=g?'編輯文章':'新增文章';
+  $('mBody').innerHTML=
+    '<div class="fg"><label class="fl">標題</label><input class="fi" id="eg_title" value="'+(g?g.title:'')+'"/></div>'+
+    '<div class="fg"><label class="fl">內容</label><textarea class="fi" id="eg_text" rows="5">'+(g?g.text:'')+'</textarea></div>'+
+    '<div class="fg"><label class="fl">分類</label><select class="fi" id="eg_cat">'+
+      '<option value="0"'+((!g||g.category===0)?' selected':'')+'>專欄文章</option>'+
+      '<option value="1"'+(g&&g.category===1?' selected':'')+'>如何挑選飲食</option>'+
+    '</select></div>'+
+    '<div class="fg"><label class="fl">封面圖片</label><input type="file" class="fi" id="eg_img" accept="image/*"/>'+
+      (g&&g.img?'<img src="'+g.img+'" style="width:100%;border-radius:var(--r1);margin-top:4px"/>':'')+
+    '</div>'+
+    '<button class="btn btn-g btn-bl" id="saveGuideBtn"><i class="ti ti-check"></i> '+(g?'儲存':'新增')+'</button>';
+  openModal();
+  on('saveGuideBtn','onclick',function(){
+    var title=$('eg_title').value.trim(); if(!title){ toast('請輸入標題'); return; }
+    var file=$('eg_img').files[0];
+    function save(imgData){
+      var data={title:title,text:$('eg_text').value,category:parseInt($('eg_cat').value),img:imgData,date:today()};
+      if(g){ Object.assign(g,data); } else { db.guides.push(Object.assign({id:Date.now()},data)); }
+      dbSave(); closeModal(); renderGuide(); toast('✓ 已儲存');
+    }
+    if(file){
+      var r=new FileReader(); r.onload=function(e){ save(e.target.result); }; r.readAsDataURL(file);
+    } else { save(g?g.img:''); }
+  });
+}
+
+// ── users ──
+function renderUsers(){
+  var body=$('userList'); body.innerHTML='';
+  db.users.forEach(function(u){
+    var catOpts=db.categories.map(function(c){ return '<option'+(c===u.dealerCategory?' selected':'')+'>'+c+'</option>'; }).join('');
+    var row=document.createElement('div'); row.className='card';
+    row.style.marginBottom='7px';
+    row.innerHTML=
+      '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div class="av" style="width:34px;height:34px;font-size:13px">'+u.name[0]+'</div>'+
+        '<div style="flex:1"><div style="font-size:13px;font-weight:500">'+u.name+'</div>'+
+          '<select class="fi ur-role" data-uid="'+u.id+'" style="margin-top:4px;font-size:12px;padding:4px 8px">'+
+            '<option value="customer"'+(u.role==='customer'?' selected':'')+'>顧客</option>'+
+            '<option value="dealer"'+(u.role==='dealer'?' selected':'')+'>經銷商</option>'+
+            '<option value="nutritionist"'+(u.role==='nutritionist'?' selected':'')+'>營養師</option>'+
+          '</select>'+
+          (u.role==='dealer'?'<select class="fi ur-dcat" data-uid="'+u.id+'" style="margin-top:4px;font-size:12px;padding:4px 8px"><option value="">—</option>'+catOpts+'</select>':'')+
+        '</div>'+
+        '<button class="nbtn ur-del" data-uid="'+u.id+'" style="color:var(--re)"><i class="ti ti-trash"></i></button>'+
+      '</div>';
+    body.appendChild(row);
+  });
+  qsa('.ur-role',body).forEach(function(sel){
+    sel.onchange=function(){
+      var u=db.users.find(function(x){ return x.id===+sel.dataset.uid; });
+      if(u){ u.role=sel.value; dbSave(); renderUsers(); }
+    };
+  });
+  qsa('.ur-dcat',body).forEach(function(sel){
+    sel.onchange=function(){
+      var u=db.users.find(function(x){ return x.id===+sel.dataset.uid; });
+      if(u){ u.dealerCategory=sel.value; dbSave(); }
+    };
+  });
+  qsa('.ur-del',body).forEach(function(btn){
+    btn.onclick=function(){
+      if(!confirm('確定刪除？')) return;
+      db.users=db.users.filter(function(x){ return x.id!==+btn.dataset.uid; });
+      dbSave(); renderUsers(); toast('✓ 已刪除');
+    };
+  });
+}
+function showAddUser(){
+  $('mTitle').textContent='新增使用者';
+  var catOpts=db.categories.map(function(c){ return '<option>'+c+'</option>'; }).join('');
+  $('mBody').innerHTML=
+    '<div class="fg"><label class="fl">姓名</label><input class="fi" id="au_n" placeholder="姓名"/></div>'+
+    '<div class="fg"><label class="fl">角色</label><select class="fi" id="au_r">'+
+      '<option value="customer">顧客</option><option value="dealer">經銷商</option><option value="nutritionist">營養師</option>'+
+    '</select></div>'+
+    '<div class="fg" id="au_dcat_wrap" style="display:none"><label class="fl">負責分類</label><select class="fi" id="au_dc"><option value="">—</option>'+catOpts+'</select></div>'+
+    '<button class="btn btn-g btn-bl" id="saveUserBtn"><i class="ti ti-check"></i> 新增</button>';
+  openModal();
+  on('au_r','onchange',function(){ $('au_dcat_wrap').style.display=$('au_r').value==='dealer'?'block':'none'; });
+  on('saveUserBtn','onclick',function(){
+    var n=$('au_n').value.trim(); if(!n){ toast('請輸入姓名'); return; }
+    var r=$('au_r').value, dc=r==='dealer'?($('au_dc').value||''):'';
+    db.users.push({id:Date.now(),name:n,role:r,active:true,dealerCategory:dc});
+    dbSave(); closeModal(); renderUsers(); toast('✓ 已新增');
+  });
+}
+
+// ── category management ──
+function showCatMgmt(){
+  $('mTitle').textContent='管理分類';
+  function rebuildCatList(){
+    var list=$('catMgmtList'); if(!list) return;
+    list.innerHTML='';
+    db.categories.forEach(function(c,i){
+      var row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:.5px solid var(--bd);';
+      row.innerHTML='<span style="flex:1;font-size:13px">'+c+'</span>'+
+        '<button class="nbtn del-cat" data-i="'+i+'" style="color:var(--re)"><i class="ti ti-trash"></i></button>';
+      list.appendChild(row);
+    });
+    qsa('.del-cat',list).forEach(function(btn){
+      btn.onclick=function(){
+        var cat=db.categories[+btn.dataset.i];
+        if(!confirm('確定刪除「'+cat+'」？')) return;
+        db.categories.splice(+btn.dataset.i,1);
+        dbSave(); rebuildCatList(); renderCatTabs();
+      };
+    });
+  }
+  $('mBody').innerHTML=
+    '<div id="catMgmtList"></div>'+
+    '<div class="fr" style="margin-top:10px">'+
+      '<div class="fg" style="grid-column:span 2"><label class="fl">新增分類</label>'+
+        '<div style="display:flex;gap:6px"><input class="fi" id="newCatName" placeholder="分類名稱"/><button class="btn btn-g btn-sm" id="addCatBtn"><i class="ti ti-plus"></i></button></div>'+
+      '</div>'+
+    '</div>';
+  rebuildCatList(); openModal();
+  on('addCatBtn','onclick',function(){
+    var n=$('newCatName').value.trim(); if(!n){ toast('請輸入名稱'); return; }
+    if(db.categories.includes(n)){ toast('分類已存在'); return; }
+    db.categories.push(n); $('newCatName').value='';
+    dbSave(); rebuildCatList(); renderCatTabs(); toast('✓ 已新增');
+  });
+}
+
+// ── init ──
+function init(){
+  dbLoad();
+  on('loginBtn','onclick',doLogin);
+  on('loginName','onkeydown',function(e){ if(e.key==='Enter') doLogin(); });
+  on('logoutBtn','onclick',doLogout);
+  on('ov','onclick',function(e){ if(e.target===$('ov')) closeModal(); });
+  on('searchInput','oninput',function(e){ renderCustList(e.target.value); });
+  on('detailBack','onclick',function(){ goPage('pg-list'); });
+  on('inputBack','onclick',function(){ goPage('pg-detail'); });
+  on('gt0','onclick',function(){ switchGuide(0); });
+  on('gt1','onclick',function(){ switchGuide(1); });
+  on('fuSettingsBtn','onclick',showFollowUpSettings);
+  on('addPlanBtn','onclick',function(){ showEditPlan(null); });
+  on('addCustBtn','onclick',showAddCustomer);
+  on('addGuideBtn','onclick',showAddGuide);
+  on('addUserBtn','onclick',showAddUser);
+  on('catMgmtBtn','onclick',showCatMgmt);
+  $('loginName').value='宥霖';
+}
+
+init();
+})();
+</script>
+</body>
+</html>
