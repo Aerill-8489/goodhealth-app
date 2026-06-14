@@ -1049,17 +1049,20 @@ function showAddPeriod(cid){
   var c=db.customers.find(function(x){ return x.id===cid; });
   $('mTitle').textContent='新增挑戰期';
   $('mBody').innerHTML=
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="ap_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option></select></div>'+
-      '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="ap_pct" type="number" value="5"/></div>'+
-    '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">起始體重(kg)</label><input class="fi" id="ap_sw" type="number" step="0.1"/></div>'+
-      '<div class="fg"><label class="fl">目標體重(kg)</label><input class="fi" id="ap_tw" type="number" step="0.1" placeholder="自動計算"/></div>'+
-    '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">開始日期</label><input class="fi" id="ap_sd" type="date" value="'+today()+'"/></div>'+
-      '<div class="fg"><label class="fl">驗收日期</label><input class="fi" id="ap_ed" type="date"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-target-arrow"></i> 挑戰期設定</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="ap_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option></select></div>'+
+        '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="ap_pct" type="number" value="5"/></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">起始體重(kg)</label><input class="fi" id="ap_sw" type="number" step="0.1"/></div>'+
+        '<div class="fg"><label class="fl">目標體重(kg)</label><input class="fi" id="ap_tw" type="number" step="0.1" placeholder="自動計算"/></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">開始日期</label><input class="fi" id="ap_sd" type="date" value="'+today()+'"/></div>'+
+        '<div class="fg"><label class="fl">驗收日期</label><input class="fi" id="ap_ed" type="date"/></div>'+
+      '</div>'+
     '</div>'+
     '<button class="btn btn-g btn-bl" id="saveApBtn"><i class="ti ti-check"></i> 新增</button>';
   openModal();
@@ -1259,11 +1262,11 @@ function showTemplateMgmt(rid,fromDaily){
   var datalist=cats.map(function(c){ return '<option>'+c+'</option>'; }).join('');
   $('mBody').innerHTML=
     '<div id="tmplMgmtList"></div>'+
-    '<div style="border-top:.5px solid var(--bd);margin-top:10px;padding-top:12px;font-size:12px;font-weight:600;color:var(--tm)">新增模板</div>'+
-    '<div class="fr" style="margin-top:8px">'+
+    '<div class="fgroup" style="margin-top:10px">'+
+      '<div class="fsec"><i class="ti ti-plus"></i> 新增模板</div>'+
       '<div class="fg"><label class="fl">分類</label><input class="fi" id="nt_cat" placeholder="鼓勵" list="nt_catdl"/><datalist id="nt_catdl">'+datalist+'</datalist></div>'+
+      '<div class="fg"><label class="fl">模板文字</label><textarea class="fi" id="nt_txt" rows="2" placeholder="輸入常用回覆文字…"></textarea></div>'+
     '</div>'+
-    '<div class="fg"><label class="fl">模板文字</label><textarea class="fi" id="nt_txt" rows="2" placeholder="輸入常用回覆文字…"></textarea></div>'+
     '<button class="btn btn-g btn-bl" id="saveTmplBtn"><i class="ti ti-plus"></i> 新增</button>'+
     '<button class="btn btn-o btn-bl" id="backReplyBtn" style="margin-top:6px"><i class="ti ti-arrow-left"></i> 返回回覆</button>';
   rebuildTmplList();
@@ -1401,23 +1404,41 @@ function showEditPlan(pid){
   });
   suppHtml+='</div>';
   $('mBody').innerHTML=
-    '<div class="fg"><label class="fl">計劃名稱 *</label><input class="fi" id="ep_name" value="'+(pl?pl.name:'')+'" placeholder="例：標準減重計劃"/></div>'+
-    '<div class="fg"><label class="fl">類型</label><select class="fi" id="ep_type">'+
-      '<option value="weight"'+(!pl||pl.type==='weight'?' selected':'')+'>減重為主</option>'+
-      '<option value="fat"'+(pl&&pl.type==='fat'?' selected':'')+'>減脂為主</option>'+
-      '<option value="both"'+(pl&&pl.type==='both'?' selected':'')+'>兩者兼顧</option>'+
-    '</select></div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">飲水目標</label><input class="fi" id="ep_water" value="'+(pl?pl.waterGoal:'')+'" placeholder="每天2000c.c."/></div>'+
-      '<div class="fg"><label class="fl">睡眠目標</label><input class="fi" id="ep_sleep" value="'+(pl?pl.sleepGoal:'')+'" placeholder="7小時以上"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-clipboard-list"></i> 基本資訊</div>'+
+      '<div class="fg"><label class="fl">計劃名稱 *</label><input class="fi" id="ep_name" value="'+(pl?pl.name:'')+'" placeholder="例：標準減重計劃"/></div>'+
+      '<div class="fg"><label class="fl">類型</label><select class="fi" id="ep_type">'+
+        '<option value="weight"'+(!pl||pl.type==='weight'?' selected':'')+'>減重為主</option>'+
+        '<option value="fat"'+(pl&&pl.type==='fat'?' selected':'')+'>減脂為主</option>'+
+        '<option value="both"'+(pl&&pl.type==='both'?' selected':'')+'>兩者兼顧</option>'+
+      '</select></div>'+
     '</div>'+
-    '<div class="fg"><label class="fl">運動建議</label><input class="fi" id="ep_ex" value="'+(pl?pl.exerciseFreq:'')+'" placeholder="每週3次有氧"/></div>'+
-    '<div class="fg"><label class="fl">禁忌食物</label><input class="fi" id="ep_forbid" value="'+(pl?pl.forbidFoods:'')+'" placeholder="精緻澱粉…"/></div>'+
-    '<div class="fg"><label class="fl" style="color:var(--re)">⭐ 第一個月注意事項</label><textarea class="fi" id="ep_m1" rows="5" placeholder="按Enter換行…">'+(pl?pl.monthOneNotes:'')+'</textarea></div>'+
-    '<div class="fg"><label class="fl">減重值得注意</label><textarea class="fi" id="ep_wa" rows="2">'+(pl?pl.weightAlert:'')+'</textarea></div>'+
-    '<div class="fg"><label class="fl">減脂值得注意</label><textarea class="fi" id="ep_fa" rows="2">'+(pl?pl.fatAlert:'')+'</textarea></div>'+
-    '<div class="fg"><label class="fl">建議保健品</label>'+suppHtml+'</div>'+
-    '<div class="fg"><label class="fl">其他備註</label><textarea class="fi" id="ep_notes" rows="2">'+(pl?pl.notes||'':'')+'</textarea></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-activity"></i> 生活建議</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">飲水目標</label><input class="fi" id="ep_water" value="'+(pl?pl.waterGoal:'')+'" placeholder="每天2000c.c."/></div>'+
+        '<div class="fg"><label class="fl">睡眠目標</label><input class="fi" id="ep_sleep" value="'+(pl?pl.sleepGoal:'')+'" placeholder="7小時以上"/></div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">運動建議</label><input class="fi" id="ep_ex" value="'+(pl?pl.exerciseFreq:'')+'" placeholder="每週3次有氧"/></div>'+
+      '<div class="fg"><label class="fl">禁忌食物</label><input class="fi" id="ep_forbid" value="'+(pl?pl.forbidFoods:'')+'" placeholder="精緻澱粉…"/></div>'+
+    '</div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-star" style="color:var(--re)"></i> 第一個月注意事項</div>'+
+      '<div class="fg"><textarea class="fi" id="ep_m1" rows="5" placeholder="按Enter換行…">'+(pl?pl.monthOneNotes:'')+'</textarea></div>'+
+    '</div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-alert-triangle"></i> 提醒事項</div>'+
+      '<div class="fg"><label class="fl">減重值得注意</label><textarea class="fi" id="ep_wa" rows="2">'+(pl?pl.weightAlert:'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">減脂值得注意</label><textarea class="fi" id="ep_fa" rows="2">'+(pl?pl.fatAlert:'')+'</textarea></div>'+
+    '</div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-pill"></i> 建議保健品</div>'+
+      '<div class="fg">'+suppHtml+'</div>'+
+    '</div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-note"></i> 其他備註</div>'+
+      '<div class="fg"><textarea class="fi" id="ep_notes" rows="2">'+(pl?pl.notes||'':'')+'</textarea></div>'+
+    '</div>'+
     '<button class="btn btn-g btn-bl" id="savePlanBtn"><i class="ti ti-check"></i> '+(pl?'儲存':'新增計劃卡')+'</button>';
   openModal();
   qsa('#ep_supps .tag').forEach(function(b){ b.onclick=function(){ b.classList.toggle('on'); }; });
@@ -1744,14 +1765,17 @@ function editGuide(id){
   var g=id?db.guides.find(function(x){ return x.id===id; }):null;
   $('mTitle').textContent=g?'編輯文章':'新增文章';
   $('mBody').innerHTML=
-    '<div class="fg"><label class="fl">標題</label><input class="fi" id="eg_title" value="'+(g?g.title:'')+'"/></div>'+
-    '<div class="fg"><label class="fl">內容</label><textarea class="fi" id="eg_text" rows="5">'+(g?g.text:'')+'</textarea></div>'+
-    '<div class="fg"><label class="fl">分類</label><select class="fi" id="eg_cat">'+
-      '<option value="0"'+((!g||g.category===0)?' selected':'')+'>專欄文章</option>'+
-      '<option value="1"'+(g&&g.category===1?' selected':'')+'>如何挑選飲食</option>'+
-    '</select></div>'+
-    '<div class="fg"><label class="fl">封面圖片</label><input type="file" class="fi" id="eg_img" accept="image/*"/>'+
-      (g&&g.img?'<img src="'+g.img+'" style="width:100%;border-radius:var(--r1);margin-top:4px"/>':'')+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-article"></i> 文章內容</div>'+
+      '<div class="fg"><label class="fl">標題</label><input class="fi" id="eg_title" value="'+(g?g.title:'')+'"/></div>'+
+      '<div class="fg"><label class="fl">內容</label><textarea class="fi" id="eg_text" rows="5">'+(g?g.text:'')+'</textarea></div>'+
+      '<div class="fg"><label class="fl">分類</label><select class="fi" id="eg_cat">'+
+        '<option value="0"'+((!g||g.category===0)?' selected':'')+'>專欄文章</option>'+
+        '<option value="1"'+(g&&g.category===1?' selected':'')+'>如何挑選飲食</option>'+
+      '</select></div>'+
+      '<div class="fg"><label class="fl">封面圖片</label><input type="file" class="fi" id="eg_img" accept="image/*"/>'+
+        (g&&g.img?'<img src="'+g.img+'" style="width:100%;border-radius:var(--r1);margin-top:4px"/>':'')+
+      '</div>'+
     '</div>'+
     '<button class="btn btn-g btn-bl" id="saveGuideBtn"><i class="ti ti-check"></i> '+(g?'儲存':'新增')+'</button>';
   openModal();
@@ -1815,11 +1839,14 @@ function showAddUser(){
   $('mTitle').textContent='新增使用者';
   var catOpts=db.categories.map(function(c){ return '<option>'+c+'</option>'; }).join('');
   $('mBody').innerHTML=
-    '<div class="fg"><label class="fl">姓名</label><input class="fi" id="au_n" placeholder="姓名"/></div>'+
-    '<div class="fg"><label class="fl">角色</label><select class="fi" id="au_r">'+
-      '<option value="customer">顧客</option><option value="dealer">經銷商</option><option value="nutritionist">營養師</option>'+
-    '</select></div>'+
-    '<div class="fg" id="au_dcat_wrap" style="display:none"><label class="fl">負責分類</label><select class="fi" id="au_dc"><option value="">—</option>'+catOpts+'</select></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-user-plus"></i> 使用者資訊</div>'+
+      '<div class="fg"><label class="fl">姓名</label><input class="fi" id="au_n" placeholder="姓名"/></div>'+
+      '<div class="fg"><label class="fl">角色</label><select class="fi" id="au_r">'+
+        '<option value="customer">顧客</option><option value="dealer">經銷商</option><option value="nutritionist">營養師</option>'+
+      '</select></div>'+
+      '<div class="fg" id="au_dcat_wrap" style="display:none"><label class="fl">負責分類</label><select class="fi" id="au_dc"><option value="">—</option>'+catOpts+'</select></div>'+
+    '</div>'+
     '<button class="btn btn-g btn-bl" id="saveUserBtn"><i class="ti ti-check"></i> 新增</button>';
   openModal();
   on('au_r','onchange',function(){ $('au_dcat_wrap').style.display=$('au_r').value==='dealer'?'block':'none'; });
