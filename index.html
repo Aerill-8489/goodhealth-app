@@ -1973,9 +1973,17 @@ function buildSyncPayload(){
 function syncToSheets(url,silent){
   return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(buildSyncPayload())})
     .then(function(res){ return res.text(); })
-    .then(function(){
-      var st=$('syncStatus'); if(st) st.textContent='✓ 上次同步：'+new Date().toLocaleString();
-      if(!silent) toast('✓ 已同步到 Google Sheets');
+    .then(function(text){
+      var st=$('syncStatus');
+      var ok=false;
+      try{ ok=JSON.parse(text).ok===true; }catch(e){}
+      if(ok){
+        if(st) st.textContent='✓ 上次同步：'+new Date().toLocaleString();
+        if(!silent) toast('✓ 已同步到 Google Sheets');
+      } else {
+        if(st) st.textContent='✗ 同步失敗：伺服器回應異常';
+        if(!silent) toast('✗ 同步失敗，請確認 Apps Script 設定');
+      }
     })
     .catch(function(err){
       var st=$('syncStatus'); if(st) st.textContent='✗ 同步失敗：'+err.message;
