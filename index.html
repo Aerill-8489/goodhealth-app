@@ -1906,18 +1906,68 @@ function buildSyncPayload(){
     var needed=+(p.startWeight-p.targetWeight).toFixed(1);
     var lost=+(p.startWeight-last).toFixed(1);
     var pct=needed>0?Math.min(100,Math.round(lost/needed*100)):0;
+    var pl=c.planId?db.plans.find(function(x){ return x.id===c.planId; }):null;
     return {id:c.id,name:c.name,gender:c.gender,height:c.height,age:c.age,category:c.category,
       phone:c.phone,health:c.health,allergy:c.allergy,products:c.products,
       lastBuyMethod:c.lastBuyMethod,lastBuyDate:c.lastBuyDate,createdDate:c.createdDate,
-      lastVisitDate:c.lastVisitDate,currentWeight:last,targetWeight:p.targetWeight,progressPct:pct};
+      lastVisitDate:c.lastVisitDate,currentWeight:last,targetWeight:p.targetWeight,progressPct:pct,
+      planName:pl?pl.name:'',note:c.note||''};
   });
+
+  var periods=[],weeks=[];
+  db.customers.forEach(function(c){
+    c.periods.forEach(function(p){
+      periods.push({customerId:c.id,customerName:c.name,period:p.label,months:p.months,
+        targetPct:p.targetPct,startWeight:p.startWeight,targetWeight:p.targetWeight,
+        startDate:p.startDate,endDate:p.endDate,supplements:(p.supplements||[]).join('、')});
+      (p.weeks||[]).forEach(function(w){
+        weeks.push({customerId:c.id,customerName:c.name,period:p.label,week:w.week,date:w.date,
+          weight:w.weight,bodyAge:w.bodyAge,bodyFat:w.bodyFat,visceralFat:w.visceralFat,
+          subFat:w.subFat,bmr:w.bmr,bmi:w.bmi,boneMuscle:w.boneMuscle,
+          waist:w.waist,hip:w.hip,thigh:w.thigh,arm:w.arm,note:w.note||''});
+      });
+    });
+  });
+
   var reports=db.reports.map(function(r){
     var c=db.customers.find(function(x){ return x.id===r.customerId; });
     var qaStr=r.qa?Object.keys(r.qa).map(function(k){ return k+': '+r.qa[k]; }).join('; '):'';
     return {id:r.id,customerName:c?c.name:'已刪除',date:r.date,note:r.note,reply:r.reply,
       supps:(r.supps||[]).join('、'),qa:qaStr};
   });
-  return {customers:customers,reports:reports};
+
+  var users=db.users.map(function(u){
+    return {id:u.id,name:u.name,role:u.role,active:u.active?'啟用':'停用',dealerCategory:u.dealerCategory||''};
+  });
+
+  var plans=db.plans.map(function(pl){
+    return {id:pl.id,name:pl.name,type:pl.type,waterGoal:pl.waterGoal,sleepGoal:pl.sleepGoal,
+      exerciseFreq:pl.exerciseFreq,forbidFoods:pl.forbidFoods,monthOneNotes:pl.monthOneNotes,
+      weightAlert:pl.weightAlert,fatAlert:pl.fatAlert,supplements:(pl.supplements||[]).join('、'),
+      notes:pl.notes||''};
+  });
+
+  var guides=db.guides.map(function(g){
+    return {id:g.id,category:g.category===0?'專欄文章':'如何挑選飲食',title:g.title,text:g.text,date:g.date};
+  });
+
+  var templates=db.templates.map(function(t){
+    return {id:t.id,category:t.category,text:t.text};
+  });
+
+  var categories=db.categories.map(function(c,i){ return {idx:i+1,name:c}; });
+
+  var fu=db.followUpSettings||{};
+  var settings=[
+    {key:'新顧客天數門檻',value:fu.newCustomerDays},
+    {key:'新顧客回訪頻率(天)',value:fu.newFreqDays},
+    {key:'舊顧客回訪頻率(天)',value:fu.oldFreqDays},
+    {key:'積極提醒天數',value:fu.warnDays},
+    {key:'危險提醒天數',value:fu.dangerDays}
+  ];
+
+  return {customers:customers,periods:periods,weeks:weeks,reports:reports,users:users,
+    plans:plans,guides:guides,templates:templates,categories:categories,settings:settings};
 }
 
 function syncToSheets(url,silent){
@@ -1946,7 +1996,7 @@ function renderExport(){
   var savedUrl=localStorage.getItem(SYNC_URL_KEY)||'';
 
   var hint=el('div','hint-bar hint-info');
-  hint.innerHTML='<i class="ti ti-info-circle"></i><div>將顧客資料與每日回報同步到 Google 試算表。設定網址後，每次資料變動會立即自動同步，無需手動操作。</div>';
+  hint.innerHTML='<i class="ti ti-info-circle"></i><div>將顧客資料、挑戰期、週記錄、每日回報、使用者、計劃卡、飲食指南、回覆模板、分類與回訪設定，完整同步到 Google 試算表（各自獨立分頁）。設定網址後，每次資料變動會立即自動同步，無需手動操作。</div>';
   body.appendChild(hint);
 
   var card=el('div','card');
