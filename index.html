@@ -1621,7 +1621,7 @@ function renderCustomerDaily(){
 // ── my progress (customer) ──
 function renderMyProgress(){
   var body=$('progressBody'); body.innerHTML='';
-  var c=db.customers.find(function(x){ return x.name===currentUser; })||db.customers[0];
+  var c=db.customers.find(function(x){ return x.name===currentUser; });
   if(!c){ body.innerHTML='<div class="empty"><i class="ti ti-user-off"></i><p>找不到您的資料</p></div>'; return; }
   var p=c.periods[c.periods.length-1], weeks=p.weeks;
   var last=weeks.length?weeks[weeks.length-1].weight:p.startWeight;
