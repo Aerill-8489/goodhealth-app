@@ -51,9 +51,13 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--tx);
 .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;}
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .fl{font-size:12px;font-weight:600;color:var(--tm);}
-.fi{border:.5px solid var(--bm);border-radius:var(--r1);padding:10px 12px;font-size:14px;font-family:inherit;background:var(--sf);color:var(--tx);width:100%;outline:none;}
+.fi{border:.5px solid var(--bm);border-radius:var(--r1);padding:10px 12px;font-size:14px;font-family:inherit;background:var(--sf);color:var(--tx);width:100%;outline:none;transition:border-color .15s;}
 .fi:focus{border-color:var(--g);}
 textarea.fi{resize:vertical;min-height:60px;}
+.fgroup{background:var(--bg);border:.5px solid var(--bd);border-radius:var(--r2);padding:14px 14px 1px;margin-bottom:14px;}
+.fgroup:last-of-type{margin-bottom:0;}
+.fsec{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--tx);margin-bottom:12px;}
+.fsec i{font-size:15px;color:var(--g);}
 /* buttons */
 .btn{display:inline-flex;align-items:center;gap:5px;padding:10px 14px;border-radius:var(--r2);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:opacity .15s;}
 .btn:active{opacity:.75;}
@@ -855,43 +859,59 @@ function showAddCustomer(){
   var catOpts=db.categories.map(function(c){ return '<option>'+c+'</option>'; }).join('');
   var bmOpts=BUYMETHODS.map(function(m){ return '<option>'+m+'</option>'; }).join('');
   $('mBody').innerHTML=
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">姓名 *</label><input class="fi" id="nc_n" placeholder="姓名"/></div>'+
-      '<div class="fg"><label class="fl">性別</label><select class="fi" id="nc_g"><option>女</option><option>男</option></select></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-user"></i> 基本資料</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">姓名 *</label><input class="fi" id="nc_n" placeholder="姓名"/></div>'+
+        '<div class="fg"><label class="fl">性別</label><select class="fi" id="nc_g"><option>女</option><option>男</option></select></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">身高(cm)</label><input class="fi" id="nc_h" type="number"/></div>'+
+        '<div class="fg"><label class="fl">年齡</label><input class="fi" id="nc_a" type="number"/></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">所屬分類</label><select class="fi" id="nc_cat">'+catOpts+'</select></div>'+
+        '<div class="fg"><label class="fl">電話</label><input class="fi" id="nc_ph"/></div>'+
+      '</div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">身高(cm)</label><input class="fi" id="nc_h" type="number"/></div>'+
-      '<div class="fg"><label class="fl">年齡</label><input class="fi" id="nc_a" type="number"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康與產品</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="nc_he" placeholder="慢性病等"/></div>'+
+        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al"/></div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">搭配產品</label><input class="fi" id="nc_pr" placeholder="AB益生菌…"/></div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">所屬分類</label><select class="fi" id="nc_cat">'+catOpts+'</select></div>'+
-      '<div class="fg"><label class="fl">電話</label><input class="fi" id="nc_ph"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-shopping-cart"></i> 購買資訊</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">購買方式</label><select class="fi" id="nc_bm">'+bmOpts+'</select></div>'+
+        '<div class="fg"><label class="fl">購買日期</label><input class="fi" id="nc_bd" type="date" value="'+today()+'"/></div>'+
+      '</div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="nc_he" placeholder="慢性病等"/></div>'+
-      '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-target-arrow"></i> 挑戰期設定</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="nc_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option><option value="6">6個月</option></select></div>'+
+        '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="nc_pct" type="number" value="5"/></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">挑戰前體重(kg)</label><input class="fi" id="nc_sw" type="number" step="0.1"/></div>'+
+        '<div class="fg"><label class="fl">目標體重(kg)</label><input class="fi" id="nc_tw" type="number" step="0.1" placeholder="自動計算"/></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">開始日期</label><input class="fi" id="nc_sd" type="date" value="'+today()+'"/></div>'+
+        '<div class="fg"><label class="fl">驗收日期</label><input class="fi" id="nc_ed" type="date"/></div>'+
+      '</div>'+
     '</div>'+
-    '<div class="fg"><label class="fl">搭配產品</label><input class="fi" id="nc_pr" placeholder="AB益生菌…"/></div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">購買方式</label><select class="fi" id="nc_bm">'+bmOpts+'</select></div>'+
-      '<div class="fg"><label class="fl">購買日期</label><input class="fi" id="nc_bd" type="date" value="'+today()+'"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-cards"></i> 套用初始計劃卡（選填）</div>'+
+      '<div id="nc_plan_list"></div>'+
     '</div>'+
-    '<div style="border-top:.5px solid var(--bd);margin:12px 0;padding-top:12px;font-size:12px;font-weight:600;color:var(--tm)">挑戰期設定</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="nc_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option><option value="6">6個月</option></select></div>'+
-      '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="nc_pct" type="number" value="5"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-note"></i> 備註</div>'+
+      '<div class="fg"><textarea class="fi" id="nc_no" rows="2"></textarea></div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">挑戰前體重(kg)</label><input class="fi" id="nc_sw" type="number" step="0.1"/></div>'+
-      '<div class="fg"><label class="fl">目標體重(kg)</label><input class="fi" id="nc_tw" type="number" step="0.1" placeholder="自動計算"/></div>'+
-    '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">開始日期</label><input class="fi" id="nc_sd" type="date" value="'+today()+'"/></div>'+
-      '<div class="fg"><label class="fl">驗收日期</label><input class="fi" id="nc_ed" type="date"/></div>'+
-    '</div>'+
-    '<div style="border-top:.5px solid var(--bd);margin:12px 0;padding-top:12px;font-size:12px;font-weight:600;color:var(--tm)"><i class="ti ti-cards"></i> 套用初始計劃卡（選填）</div>'+
-    '<div id="nc_plan_list"></div>'+
-    '<div class="fg"><label class="fl">備註</label><textarea class="fi" id="nc_no" rows="2"></textarea></div>'+
     '<button class="btn btn-g btn-bl" id="saveNewCust"><i class="ti ti-check"></i> 儲存新增</button>';
   openModal();
   // render plan selector
@@ -939,23 +959,32 @@ function editCustomer(cid){
   $('mTitle').textContent='編輯顧客資料';
   var catOpts=db.categories.map(function(cat){ return '<option'+(cat===c.category?' selected':'')+'>'+cat+'</option>'; }).join('');
   $('mBody').innerHTML=
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">姓名</label><input class="fi" id="ec_n" value="'+c.name+'"/></div>'+
-      '<div class="fg"><label class="fl">性別</label><select class="fi" id="ec_g"><option'+(c.gender==='女'?' selected':'')+'>女</option><option'+(c.gender==='男'?' selected':'')+'>男</option></select></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-user"></i> 基本資料</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">姓名</label><input class="fi" id="ec_n" value="'+c.name+'"/></div>'+
+        '<div class="fg"><label class="fl">性別</label><select class="fi" id="ec_g"><option'+(c.gender==='女'?' selected':'')+'>女</option><option'+(c.gender==='男'?' selected':'')+'>男</option></select></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">身高(cm)</label><input class="fi" id="ec_h" type="number" value="'+c.height+'"/></div>'+
+        '<div class="fg"><label class="fl">年齡</label><input class="fi" id="ec_a" type="number" value="'+c.age+'"/></div>'+
+      '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">所屬分類</label><select class="fi" id="ec_cat">'+catOpts+'</select></div>'+
+        '<div class="fg"><label class="fl">電話</label><input class="fi" id="ec_ph" value="'+(c.phone||'')+'"/></div>'+
+      '</div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">身高(cm)</label><input class="fi" id="ec_h" type="number" value="'+c.height+'"/></div>'+
-      '<div class="fg"><label class="fl">年齡</label><input class="fi" id="ec_a" type="number" value="'+c.age+'"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康狀況</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="ec_he" value="'+c.health+'"/></div>'+
+        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+c.allergy+'"/></div>'+
+      '</div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">所屬分類</label><select class="fi" id="ec_cat">'+catOpts+'</select></div>'+
-      '<div class="fg"><label class="fl">電話</label><input class="fi" id="ec_ph" value="'+(c.phone||'')+'"/></div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-note"></i> 備註</div>'+
+      '<div class="fg"><textarea class="fi" id="ec_no" rows="2">'+( c.note||'')+'</textarea></div>'+
     '</div>'+
-    '<div class="fr">'+
-      '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="ec_he" value="'+c.health+'"/></div>'+
-      '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+c.allergy+'"/></div>'+
-    '</div>'+
-    '<div class="fg"><label class="fl">備註</label><textarea class="fi" id="ec_no" rows="2">'+( c.note||'')+'</textarea></div>'+
     '<button class="btn btn-g btn-bl" id="saveEditCust"><i class="ti ti-check"></i> 儲存</button>';
   openModal();
   on('saveEditCust','onclick',function(){
