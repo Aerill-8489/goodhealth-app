@@ -1981,7 +1981,7 @@ function syncToSheets(url,silent){
         if(st) st.textContent='✓ 上次同步：'+new Date().toLocaleString();
         if(!silent) toast('✓ 已同步到 Google Sheets');
       } else {
-        var detail=parsed&&parsed.error?parsed.error:text.slice(0,200);
+        var detail=parsed&&parsed.error?parsed.error:(/^\s*<!DOCTYPE html/i.test(text)?'網址錯誤：請填入「部署為網路應用程式」後的 Apps Script 網址（結尾為 /exec），而非 Google 試算表網址':text.slice(0,200));
         if(st) st.textContent='✗ 同步失敗：'+detail;
         if(!silent) toast('✗ 同步失敗，請確認 Apps Script 設定');
       }
