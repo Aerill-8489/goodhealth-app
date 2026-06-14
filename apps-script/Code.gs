@@ -1,4 +1,16 @@
 function doPost(e) {
+  try {
+    return doSync(e);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      ok: false,
+      error: err.message,
+      stack: err.stack
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doSync(e) {
   var data = JSON.parse(e.postData.contents);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 

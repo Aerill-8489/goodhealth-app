@@ -1975,13 +1975,14 @@ function syncToSheets(url,silent){
     .then(function(res){ return res.text(); })
     .then(function(text){
       var st=$('syncStatus');
-      var ok=false;
-      try{ ok=JSON.parse(text).ok===true; }catch(e){}
-      if(ok){
+      var parsed=null;
+      try{ parsed=JSON.parse(text); }catch(e){}
+      if(parsed&&parsed.ok===true){
         if(st) st.textContent='✓ 上次同步：'+new Date().toLocaleString();
         if(!silent) toast('✓ 已同步到 Google Sheets');
       } else {
-        if(st) st.textContent='✗ 同步失敗：伺服器回應異常';
+        var detail=parsed&&parsed.error?parsed.error:text.slice(0,200);
+        if(st) st.textContent='✗ 同步失敗：'+detail;
         if(!silent) toast('✗ 同步失敗，請確認 Apps Script 設定');
       }
     })
