@@ -590,8 +590,11 @@ function renderCustList(filter){
 }
 
 // ── open customer ──
-function openCustomer(id){
+var detailReturnPage='pg-list', detailReturnNav='nav-list';
+function openCustomer(id,fromPage,fromNav){
   currentCid=id; currentPeriod=0;
+  detailReturnPage=fromPage||'pg-list';
+  detailReturnNav=fromNav||'nav-list';
   renderDetail(); goPage('pg-detail');
 }
 
@@ -611,10 +614,11 @@ function renderDetail(){
         '<div><div style="font-size:18px;font-weight:700">'+c.name+'</div>'+
           '<div style="font-size:12px;color:var(--tm)">'+c.gender+'・'+c.height+'cm・'+c.age+'歲</div></div>'+
       '</div>'+
+      (role==='dealer'?'':
       '<div style="display:flex;gap:6px">'+
         '<button class="nbtn" id="editCustBtn"><i class="ti ti-edit"></i></button>'+
         '<button class="nbtn" id="delCustBtn" style="color:var(--re)"><i class="ti ti-trash"></i></button>'+
-      '</div>'+
+      '</div>')+
     '</div>';
   body.appendChild(hdr);
 
@@ -627,7 +631,7 @@ function renderDetail(){
       '<div class="card-title"><i class="ti ti-cards"></i> 套用計劃卡'+
         '<span style="margin-left:auto;display:flex;gap:6px;align-items:center">'+
           '<span class="plan-badge plan-badge-'+pl.type+'">'+typeN+'</span>'+
-          '<button class="nbtn" id="changePlanBtn" style="font-size:12px;color:var(--tm)"><i class="ti ti-switch"></i></button>'+
+          (role==='dealer'?'':'<button class="nbtn" id="changePlanBtn" style="font-size:12px;color:var(--tm)"><i class="ti ti-switch"></i></button>')+
         '</span>'+
       '</div>'+
       '<div style="font-size:13px;font-weight:600;margin-bottom:6px">'+pl.name+'</div>'+
@@ -635,7 +639,7 @@ function renderDetail(){
       (pl.weightAlert?'<div class="hint-bar hint-warn" style="margin-top:7px"><i class="ti ti-scale"></i><div>減重：'+pl.weightAlert+'</div></div>':'')+
       (pl.fatAlert?'<div class="hint-bar hint-info"><i class="ti ti-percentage"></i><div>減脂：'+pl.fatAlert+'</div></div>':'');
     body.appendChild(planCard);
-  } else {
+  } else if(role!=='dealer'){
     var noPlan=el('div','');
     noPlan.innerHTML='<button class="btn btn-o btn-sm" id="changePlanBtn" style="margin-bottom:9px"><i class="ti ti-cards"></i> 套用計劃卡</button>';
     body.appendChild(noPlan);
@@ -651,9 +655,10 @@ function renderDetail(){
       '<div class="ii"><div class="il">過敏/禁忌</div><div class="iv" style="font-size:13px">'+c.allergy+'</div></div>'+
       '<div class="ii"><div class="il">搭配產品</div><div class="iv" style="font-size:13px">'+( c.products||'—')+'</div></div>'+
     '</div>'+
+    (role==='dealer'?'':
     '<div style="margin-top:6px">'+
       '<button class="btn btn-o btn-sm" id="savePurchaseBtn"><i class="ti ti-shopping-cart"></i> 更新購買</button>'+
-    '</div>';
+    '</div>');
   body.appendChild(infoCard);
 
   // photos
@@ -662,13 +667,17 @@ function renderDetail(){
     '<div class="card-title"><i class="ti ti-camera"></i> 前後對比</div>'+
     '<div class="bafoto">'+
       '<div><div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:4px">挑戰前</div>'+
-        '<label class="bafoto-ph" for="bfIn">'+
+        (role==='dealer'?
+          '<div class="bafoto-ph">'+(c.beforePhoto?'<img src="'+c.beforePhoto+'"/>':'<i class="ti ti-photo" style="font-size:22px;color:var(--th)"></i>')+'</div>'
+        :'<label class="bafoto-ph" for="bfIn">'+
           (c.beforePhoto?'<img src="'+c.beforePhoto+'"/>':'<i class="ti ti-plus" style="font-size:22px;color:var(--th)"></i>')+
-        '</label><input type="file" id="bfIn" accept="image/*" style="display:none"/></div>'+
+        '</label><input type="file" id="bfIn" accept="image/*" style="display:none"/>')+'</div>'+
       '<div><div style="font-size:11px;color:var(--tm);text-align:center;margin-bottom:4px">挑戰後</div>'+
-        '<label class="bafoto-ph" for="afIn">'+
+        (role==='dealer'?
+          '<div class="bafoto-ph">'+(c.afterPhoto?'<img src="'+c.afterPhoto+'"/>':'<i class="ti ti-photo" style="font-size:22px;color:var(--th)"></i>')+'</div>'
+        :'<label class="bafoto-ph" for="afIn">'+
           (c.afterPhoto?'<img src="'+c.afterPhoto+'"/>':'<i class="ti ti-plus" style="font-size:22px;color:var(--th)"></i>')+
-        '</label><input type="file" id="afIn" accept="image/*" style="display:none"/></div>'+
+        '</label><input type="file" id="afIn" accept="image/*" style="display:none"/>')+'</div>'+
     '</div>';
   body.appendChild(photoCard);
 
@@ -678,7 +687,8 @@ function renderDetail(){
   c.periods.forEach(function(pd,i){
     tabsHtml+='<button class="ptab'+(i===currentPeriod?' on':'')+'" data-pi="'+i+'">'+pd.label+'</button>';
   });
-  tabsHtml+='<button class="ptab" id="addPeriodBtn" style="border-style:dashed"><i class="ti ti-plus"></i></button></div>';
+  if(role!=='dealer') tabsHtml+='<button class="ptab" id="addPeriodBtn" style="border-style:dashed"><i class="ti ti-plus"></i></button>';
+  tabsHtml+='</div>';
   tabsDiv.innerHTML=tabsHtml;
   body.appendChild(tabsDiv);
 
@@ -701,10 +711,11 @@ function renderDetail(){
     '</div>'+
     '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>達成進度</span><strong style="color:var(--g)">'+pct+'%</strong></div>'+
     '<div class="pt" style="margin-bottom:12px"><div class="pf" style="width:'+pct+'%"></div></div>'+
+    (role==='dealer'?'':
     '<div style="display:flex;gap:6px">'+
       '<button class="btn btn-g btn-sm" id="goInputBtn"><i class="ti ti-pencil"></i> 輸入量測</button>'+
       '<button class="btn btn-o btn-sm" id="markVisitBtn"><i class="ti ti-check"></i> 標記回訪</button>'+
-    '</div>';
+    '</div>');
   body.appendChild(periodCard);
 
   // smart ref
@@ -730,7 +741,7 @@ function renderDetail(){
     p.weeks.forEach(function(w,i){
       tblHtml+='<tr><td>'+w.week+'</td><td>'+w.date+'</td><td><strong>'+w.weight+'kg</strong></td>'+
         '<td>'+w.bodyAge+'</td><td>'+w.bodyFat+'%</td><td>'+w.visceralFat+'</td><td>'+w.bmi+'</td><td>'+(w.waist||'—')+'cm</td>'+
-        '<td><button class="nbtn note-btn" data-wi="'+i+'"><i class="ti ti-notes"></i></button></td></tr>';
+        '<td>'+(role==='dealer'?'':'<button class="nbtn note-btn" data-wi="'+i+'"><i class="ti ti-notes"></i></button>')+'</td></tr>';
     });
     tblHtml+='</tbody></table></div>';
   }
@@ -774,38 +785,40 @@ function renderDetail(){
       photoHtml+
       (r.supps&&r.supps.length?'<div style="font-size:11px;color:var(--tm);margin-bottom:6px">💊 '+r.supps.join('、')+'</div>':'')+
       (r.reply?'<div style="font-size:12px;background:var(--gl);color:var(--gd);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.reply+'</div>':'')+
-      '<button class="btn btn-o btn-sm reply-btn" data-rid="'+r.id+'" style="margin-top:2px"><i class="ti ti-send"></i> '+(r.reply?'修改回覆':'回覆')+'</button>';
+      (role==='dealer'?'':'<button class="btn btn-o btn-sm reply-btn" data-rid="'+r.id+'" style="margin-top:2px"><i class="ti ti-send"></i> '+(r.reply?'修改回覆':'回覆')+'</button>');
     repCard.appendChild(rd);
   });
   if(!reps.length) repCard.innerHTML+='<div style="text-align:center;padding:10px;color:var(--tm);font-size:12px">尚無回報</div>';
   body.appendChild(repCard);
 
   // bind all buttons
-  on('editCustBtn','onclick',function(){ editCustomer(currentCid); });
-  on('delCustBtn','onclick',function(){
-    if(!confirm('確定刪除 '+c.name+' 的所有資料？')) return;
-    db.customers=db.customers.filter(function(x){ return x.id!==currentCid; });
-    dbSave(); goPage('pg-list'); renderCustList(); toast('✓ 已刪除');
-  });
-  on('changePlanBtn','onclick',function(){ showChangePlan(currentCid); });
-  on('goInputBtn','onclick',function(){ goInput(currentCid); });
-  on('markVisitBtn','onclick',function(){
-    c.lastVisitDate=today(); dbSave(); renderDetail(); toast('✓ 已標記今日回訪');
-  });
-  on('savePurchaseBtn','onclick',function(){ showPurchaseEdit(currentCid); });
-  on('addPeriodBtn','onclick',function(){ showAddPeriod(currentCid); });
+  if(role!=='dealer'){
+    on('editCustBtn','onclick',function(){ editCustomer(currentCid); });
+    on('delCustBtn','onclick',function(){
+      if(!confirm('確定刪除 '+c.name+' 的所有資料？')) return;
+      db.customers=db.customers.filter(function(x){ return x.id!==currentCid; });
+      dbSave(); goPage('pg-list'); renderCustList(); toast('✓ 已刪除');
+    });
+    on('changePlanBtn','onclick',function(){ showChangePlan(currentCid); });
+    on('goInputBtn','onclick',function(){ goInput(currentCid); });
+    on('markVisitBtn','onclick',function(){
+      c.lastVisitDate=today(); dbSave(); renderDetail(); toast('✓ 已標記今日回訪');
+    });
+    on('savePurchaseBtn','onclick',function(){ showPurchaseEdit(currentCid); });
+    on('addPeriodBtn','onclick',function(){ showAddPeriod(currentCid); });
+    qsa('.note-btn',body).forEach(function(btn){
+      btn.onclick=function(){ showNote(currentCid,+btn.dataset.wi); };
+    });
+    qsa('.reply-btn',body).forEach(function(btn){
+      btn.onclick=function(){ showReplyModal(+btn.dataset.rid,false); };
+    });
+    on('bfIn','onchange',function(e){ uploadPhoto(e,'before',currentCid); });
+    on('afIn','onchange',function(e){ uploadPhoto(e,'after',currentCid); });
+  }
 
   qsa('.ptab[data-pi]',body).forEach(function(btn){
     btn.onclick=function(){ currentPeriod=+btn.dataset.pi; renderDetail(); };
   });
-  qsa('.note-btn',body).forEach(function(btn){
-    btn.onclick=function(){ showNote(currentCid,+btn.dataset.wi); };
-  });
-  qsa('.reply-btn',body).forEach(function(btn){
-    btn.onclick=function(){ showReplyModal(+btn.dataset.rid,false); };
-  });
-  on('bfIn','onchange',function(e){ uploadPhoto(e,'before',currentCid); });
-  on('afIn','onchange',function(e){ uploadPhoto(e,'after',currentCid); });
 
   // chart
   setTimeout(function(){
@@ -1725,6 +1738,8 @@ function renderDealer(){
         '<div class="pt" style="margin-top:4px"><div class="pf" style="width:'+pct+'%"></div></div>'+
       '</div>'+
       '<div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700;color:var(--g)">'+pct+'%</div><div style="font-size:10px;color:var(--tm)">達成</div></div>';
+    card.style.cursor='pointer';
+    card.onclick=function(){ openCustomer(c.id,'pg-dealer','nav-dealer'); };
     body.appendChild(card);
   });
 }
@@ -2031,7 +2046,7 @@ function init(){
   on('logoutBtn','onclick',doLogout);
   on('ov','onclick',function(e){ if(e.target===$('ov')) closeModal(); });
   on('searchInput','oninput',function(e){ renderCustList(e.target.value); });
-  on('detailBack','onclick',function(){ goPage('pg-list'); });
+  on('detailBack','onclick',function(){ goPage(detailReturnPage); navActive(detailReturnNav); });
   on('inputBack','onclick',function(){ goPage('pg-detail'); });
   on('gt0','onclick',function(){ switchGuide(0); });
   on('gt1','onclick',function(){ switchGuide(1); });
