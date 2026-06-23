@@ -2068,6 +2068,14 @@ function renderExport(){
   });
 }
 
+// ── import API (for console use) ──
+window._jkImport=function(cust){
+  if(db.customers.find(function(c){return c.name===cust.name;})){toast('已存在：'+cust.name);return;}
+  if(cust.category&&!db.categories.includes(cust.category)) db.categories.push(cust.category);
+  db.customers.push(cust);
+  dbSave(); toast('✓ 已匯入：'+cust.name);
+};
+
 // ── init ──
 var SYNC_URL_DEFAULT='https://script.google.com/macros/s/AKfycbx0m_8JYOc5O8vSJM1Ks6WCfz2PpEJGjmzuRY6ZmU0uEKV-s_8inehBomWv17lGx6sIRA/exec';
 function init(){
