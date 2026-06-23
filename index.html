@@ -533,15 +533,13 @@ function setupNav(){
       '<div class="ni" id="nav-daily"><i class="ti ti-message-circle"></i><span>回報</span></div>'+
       '<div class="ni" id="nav-plans"><i class="ti ti-cards"></i><span>計劃卡</span></div>'+
       '<div class="ni" id="nav-guide"><i class="ti ti-book"></i><span>指南</span></div>'+
-      '<div class="ni" id="nav-users"><i class="ti ti-shield-lock"></i><span>管理</span></div>'+
-      '<div class="ni" id="nav-export"><i class="ti ti-cloud-upload"></i><span>同步</span></div>';
+      '<div class="ni" id="nav-users"><i class="ti ti-shield-lock"></i><span>管理</span></div>';
     on('nav-list','onclick',function(){ navActive('nav-list'); renderCatTabs(); renderCustList(); goPage('pg-list'); });
     on('nav-fu','onclick',function(){ navActive('nav-fu'); renderFollowUp(); goPage('pg-followup'); });
     on('nav-daily','onclick',function(){ navActive('nav-daily'); renderNutriDaily(); goPage('pg-daily'); });
     on('nav-plans','onclick',function(){ navActive('nav-plans'); renderPlans(); goPage('pg-plans'); });
     on('nav-guide','onclick',function(){ navActive('nav-guide'); renderGuide(); goPage('pg-guide'); });
     on('nav-users','onclick',function(){ navActive('nav-users'); renderUsers(); goPage('pg-users'); });
-    on('nav-export','onclick',function(){ navActive('nav-export'); renderExport(); goPage('pg-export'); });
     navActive('nav-list'); renderCatTabs(); renderCustList(); goPage('pg-list');
   } else if(role==='dealer'){
     nav.innerHTML=
