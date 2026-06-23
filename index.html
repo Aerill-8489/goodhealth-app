@@ -2071,8 +2071,10 @@ function renderExport(){
 }
 
 // ── init ──
+var SYNC_URL_DEFAULT='https://script.google.com/macros/s/AKfycbx0m_8JYOc5O8vSJM1Ks6WCfz2PpEJGjmzuRY6ZmU0uEKV-s_8inehBomWv17lGx6sIRA/exec';
 function init(){
   dbLoad();
+  if(!localStorage.getItem(SYNC_URL_KEY)) localStorage.setItem(SYNC_URL_KEY,SYNC_URL_DEFAULT);
   on('loginBtn','onclick',doLogin);
   on('loginName','onkeydown',function(e){ if(e.key==='Enter') doLogin(); });
   on('logoutBtn','onclick',doLogout);
