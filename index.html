@@ -370,6 +370,8 @@ var currentPeriod=0;
 var currentCat='全部';
 var currentGuideTab=0;
 var custFilter='';
+var syncPulled=false;
+var syncTimer=null;
 
 // ── DB with localStorage ──
 var STORAGE_KEY='jk_health_v1';
@@ -464,13 +466,40 @@ function doLogin(){
   var n=$('loginName').value.trim();
   if(!n){ toast('請輸入姓名'); return; }
   currentUser=n;
-  var u=db.users.find(function(x){ return x.name===n; });
-  role=u?u.role:'customer';
-  $('loginPage').style.display='none';
-  $('appShell').style.display='flex';
-  setupRoleSwitch(); setupNav();
+  var syncUrl=localStorage.getItem(SYNC_URL_KEY);
+  function proceed(){
+    syncPulled=true;
+    var u=db.users.find(function(x){ return x.name===currentUser; });
+    role=u?u.role:'customer';
+    $('loginPage').style.display='none';
+    $('appShell').style.display='flex';
+    setupRoleSwitch(); setupNav();
+  }
+  if(syncUrl){
+    var btn=$('loginBtn'); btn.disabled=true;
+    btn.innerHTML='<i class="ti ti-loader"></i> 載入資料中…';
+    var done=false;
+    function finish(){
+      if(done) return; done=true;
+      btn.disabled=false; btn.innerHTML='<i class="ti ti-login"></i> 登入';
+      proceed();
+    }
+    var fallback=setTimeout(finish,8000);
+    fetch(syncUrl)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        clearTimeout(fallback);
+        if(data&&data.customers){ db=data; localStorage.setItem(STORAGE_KEY,JSON.stringify(db)); }
+        finish();
+      })
+      .catch(function(){ clearTimeout(fallback); finish(); });
+  } else {
+    proceed();
+  }
 }
 function doLogout(){
+  syncPulled=false;
+  if(syncTimer){ clearTimeout(syncTimer); syncTimer=null; }
   $('loginPage').style.display='flex';
   $('appShell').style.display='none';
   $('loginName').value='宥霖';
@@ -1982,7 +2011,8 @@ function buildSyncPayload(){
   ];
 
   return {customers:customers,periods:periods,weeks:weeks,reports:reports,users:users,
-    plans:plans,guides:guides,templates:templates,categories:categories,settings:settings};
+    plans:plans,guides:guides,templates:templates,categories:categories,settings:settings,
+    fullData:JSON.stringify(db)};
 }
 
 function syncToSheets(url,silent){
@@ -2007,12 +2037,14 @@ function syncToSheets(url,silent){
     });
 }
 
-// auto-sync, fired immediately from dbSave() — every save is a discrete user action, not per-keystroke
+// auto-sync with 1.5s debounce; blocked until first cloud pull completes
 function autoSync(){
+  if(!syncPulled) return;
   var url=localStorage.getItem(SYNC_URL_KEY);
   if(!url) return;
+  if(syncTimer) clearTimeout(syncTimer);
   var st=$('syncStatus'); if(st) st.textContent='同步中…';
-  syncToSheets(url,true);
+  syncTimer=setTimeout(function(){ syncTimer=null; syncToSheets(url,true); },1500);
 }
 
 function renderExport(){

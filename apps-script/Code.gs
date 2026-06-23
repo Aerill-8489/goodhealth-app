@@ -14,6 +14,11 @@ function doSync(e) {
   var data = JSON.parse(e.postData.contents);
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
+  // Save full nested JSON for cross-device restore
+  if (data.fullData) {
+    writeFullBackup(ss, data.fullData);
+  }
+
   writeSheet(ss, '顧客',
     ['ID','姓名','性別','身高','年齡','分類','電話','健康狀況','過敏/禁忌','搭配產品','購買方式','購買日期','建立日期','最後回訪','目前體重','目標體重','達成率%','計劃名稱','備註'],
     data.customers || [],
@@ -71,6 +76,19 @@ function doSync(e) {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
+function writeFullBackup(ss, json) {
+  var sheet = ss.getSheetByName('AppData') || ss.insertSheet('AppData');
+  sheet.clearContents();
+  var chunkSize = 45000;
+  var chunks = [];
+  for (var i = 0; i < json.length; i += chunkSize) {
+    chunks.push([json.substring(i, i + chunkSize)]);
+  }
+  if (chunks.length > 0) {
+    sheet.getRange(1, 1, chunks.length, 1).setValues(chunks);
+  }
+}
+
 function writeSheet(ss, name, headers, rows, keys) {
   var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
   sheet.clearContents();
@@ -85,5 +103,20 @@ function writeSheet(ss, name, headers, rows, keys) {
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput('OK - 健康管理同步端點運作中');
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName('AppData');
+    if (!sheet || sheet.getLastRow() === 0) {
+      return ContentService.createTextOutput(JSON.stringify({ok: false, error: 'no data'}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    var lastRow = sheet.getLastRow();
+    var values = sheet.getRange(1, 1, lastRow, 1).getValues();
+    var json = values.map(function(r) { return r[0]; }).join('');
+    return ContentService.createTextOutput(json)
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ok: false, error: err.message}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
