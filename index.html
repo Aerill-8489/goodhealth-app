@@ -678,8 +678,12 @@ function renderDetail(){
     '<div class="card-title"><i class="ti ti-info-circle"></i> 基本資料</div>'+
     '<div class="ii-grid">'+
       '<div class="ii"><div class="il">電話</div><div class="iv" style="font-size:13px">'+( c.phone||'—')+'</div></div>'+
-      '<div class="ii"><div class="il">健康狀況</div><div class="iv" style="font-size:13px">'+c.health+'</div></div>'+
-      '<div class="ii"><div class="il">過敏/禁忌</div><div class="iv" style="font-size:13px">'+c.allergy+'</div></div>'+
+      '<div class="ii"><div class="il">挑戰方案</div><div class="iv" style="font-size:13px">'+( c.challenge||'—')+'</div></div>'+
+      '<div class="ii"><div class="il">疾病/身體狀況</div><div class="iv" style="font-size:13px">'+( c.health||'—')+'</div></div>'+
+      '<div class="ii"><div class="il">常見症狀</div><div class="iv" style="font-size:13px">'+( c.symptoms||'—')+'</div></div>'+
+      '<div class="ii"><div class="il">過敏/禁忌</div><div class="iv" style="font-size:13px">'+( c.allergy||'—')+'</div></div>'+
+      '<div class="ii"><div class="il">生活習慣</div><div class="iv" style="font-size:13px">'+( c.lifestyle||'—')+'</div></div>'+
+      '<div class="ii"><div class="il">曾試過的減肥方式</div><div class="iv" style="font-size:13px">'+( c.prevDiet||'—')+'</div></div>'+
       '<div class="ii"><div class="il">搭配產品</div><div class="iv" style="font-size:13px">'+( c.products||'—')+'</div></div>'+
     '</div>'+
     (role==='dealer'?'':
@@ -915,15 +919,21 @@ function showAddCustomer(){
       '</div>'+
     '</div>'+
     '<div class="fgroup">'+
-      '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康與產品</div>'+
+      '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康問卷</div>'+
       '<div class="fr">'+
-        '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="nc_he" placeholder="慢性病等"/></div>'+
-        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al"/></div>'+
+        '<div class="fg"><label class="fl">疾病/身體狀況</label><input class="fi" id="nc_he" placeholder="水腫、甲狀腺等"/></div>'+
+        '<div class="fg"><label class="fl">常見症狀</label><input class="fi" id="nc_sy" placeholder="頭痛、失眠、口乾等"/></div>'+
       '</div>'+
-      '<div class="fg"><label class="fl">搭配產品</label><input class="fi" id="nc_pr" placeholder="AB益生菌…"/></div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al" placeholder="無咖啡、無冰冷等"/></div>'+
+        '<div class="fg"><label class="fl">曾試過的減肥方式</label><input class="fi" id="nc_pd" placeholder="中藥、酵素等"/></div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">生活習慣</label><input class="fi" id="nc_lf" placeholder="睡眠、運動、飲水習慣等"/></div>'+
+      '<div class="fg"><label class="fl">搭配產品/健康食品</label><input class="fi" id="nc_pr" placeholder="AB益生菌…"/></div>'+
     '</div>'+
     '<div class="fgroup">'+
       '<div class="fsec"><i class="ti ti-shopping-cart"></i> 購買資訊</div>'+
+      '<div class="fg"><label class="fl">挑戰方案/金額</label><input class="fi" id="nc_ch" placeholder="一週挑戰2% / $3500"/></div>'+
       '<div class="fr">'+
         '<div class="fg"><label class="fl">購買方式</label><select class="fi" id="nc_bm">'+bmOpts+'</select></div>'+
         '<div class="fg"><label class="fl">購買日期</label><input class="fi" id="nc_bd" type="date" value="'+today()+'"/></div>'+
@@ -949,8 +959,8 @@ function showAddCustomer(){
       '<div id="nc_plan_list"></div>'+
     '</div>'+
     '<div class="fgroup">'+
-      '<div class="fsec"><i class="ti ti-note"></i> 備註</div>'+
-      '<div class="fg"><textarea class="fi" id="nc_no" rows="2"></textarea></div>'+
+      '<div class="fsec"><i class="ti ti-note"></i> 其他說明</div>'+
+      '<div class="fg"><textarea class="fi" id="nc_no" rows="3" placeholder="歷史狀況、目標說明、飲食禁忌等…"></textarea></div>'+
     '</div>'+
     '<button class="btn btn-g btn-bl" id="saveNewCust"><i class="ti ti-check"></i> 儲存新增</button>';
   openModal();
@@ -982,7 +992,8 @@ function showAddCustomer(){
     var planSupps=planId?(db.plans.find(function(x){ return x.id===planId; })||{supplements:[]}).supplements:[];
     db.customers.push({id:Date.now(),name:name,gender:$('nc_g').value,height:parseFloat($('nc_h').value)||160,
       age:parseInt($('nc_a').value)||30,category:$('nc_cat').value,phone:$('nc_ph').value,
-      health:$('nc_he').value||'無',allergy:$('nc_al').value||'無',
+      health:$('nc_he').value||'無',symptoms:$('nc_sy').value,allergy:$('nc_al').value||'無',
+      lifestyle:$('nc_lf').value,prevDiet:$('nc_pd').value,challenge:$('nc_ch').value,
       products:$('nc_pr').value||(planSupps.join('、')),lastBuyMethod:$('nc_bm').value,
       lastBuyDate:$('nc_bd').value,createdDate:today(),lastVisitDate:today(),
       beforePhoto:'',afterPhoto:'',note:$('nc_no').value,planId:planId,
@@ -1015,15 +1026,24 @@ function editCustomer(cid){
       '</div>'+
     '</div>'+
     '<div class="fgroup">'+
-      '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康狀況</div>'+
+      '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康問卷</div>'+
       '<div class="fr">'+
-        '<div class="fg"><label class="fl">健康狀況</label><input class="fi" id="ec_he" value="'+c.health+'"/></div>'+
-        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+c.allergy+'"/></div>'+
+        '<div class="fg"><label class="fl">疾病/身體狀況</label><input class="fi" id="ec_he" value="'+(c.health||'')+'"/></div>'+
+        '<div class="fg"><label class="fl">常見症狀</label><input class="fi" id="ec_sy" value="'+(c.symptoms||'')+'"/></div>'+
       '</div>'+
+      '<div class="fr">'+
+        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+(c.allergy||'')+'"/></div>'+
+        '<div class="fg"><label class="fl">曾試過的減肥方式</label><input class="fi" id="ec_pd" value="'+(c.prevDiet||'')+'"/></div>'+
+      '</div>'+
+      '<div class="fg"><label class="fl">生活習慣</label><input class="fi" id="ec_lf" value="'+(c.lifestyle||'')+'"/></div>'+
     '</div>'+
     '<div class="fgroup">'+
-      '<div class="fsec"><i class="ti ti-note"></i> 備註</div>'+
-      '<div class="fg"><textarea class="fi" id="ec_no" rows="2">'+( c.note||'')+'</textarea></div>'+
+      '<div class="fsec"><i class="ti ti-shopping-cart"></i> 挑戰方案</div>'+
+      '<div class="fg"><input class="fi" id="ec_ch" value="'+(c.challenge||'')+'" placeholder="一週挑戰2% / $3500"/></div>'+
+    '</div>'+
+    '<div class="fgroup">'+
+      '<div class="fsec"><i class="ti ti-note"></i> 其他說明</div>'+
+      '<div class="fg"><textarea class="fi" id="ec_no" rows="3">'+( c.note||'')+'</textarea></div>'+
     '</div>'+
     '<button class="btn btn-g btn-bl" id="saveEditCust"><i class="ti ti-check"></i> 儲存</button>';
   openModal();
@@ -1032,7 +1052,9 @@ function editCustomer(cid){
     c.gender=$('ec_g').value; c.height=parseFloat($('ec_h').value)||c.height;
     c.age=parseInt($('ec_a').value)||c.age; c.category=$('ec_cat').value;
     c.phone=$('ec_ph').value; c.health=$('ec_he').value;
-    c.allergy=$('ec_al').value; c.note=$('ec_no').value;
+    c.symptoms=$('ec_sy').value; c.allergy=$('ec_al').value;
+    c.lifestyle=$('ec_lf').value; c.prevDiet=$('ec_pd').value;
+    c.challenge=$('ec_ch').value; c.note=$('ec_no').value;
     dbSave(); closeModal(); renderDetail(); toast('✓ 已儲存');
   });
 }
