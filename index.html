@@ -697,10 +697,12 @@ function renderDetail(){
       '<div style="display:flex;flex-direction:column;gap:4px">'+
       HQ.map(function(q,i){
         var hq=c.healthQ[i]||{a:'否',n:''};
-        return '<div style="display:flex;align-items:center;gap:6px;font-size:12px">'+
+        var timeStr=(i===5&&(hq.wt||hq.st))?(' 起床 '+(hq.wt||'—')+' / 睡覺 '+(hq.st||'—')):'';
+        return '<div style="display:flex;align-items:center;gap:6px;font-size:12px;flex-wrap:wrap">'+
           '<span style="min-width:26px;font-weight:600;color:'+(hq.a==='是'?'#22c55e':'var(--tm)')+'">'+hq.a+'</span>'+
           '<span style="color:var(--t2)">('+( i+1)+') '+q+'</span>'+
           (hq.n?'<span style="color:var(--tm)">— '+hq.n+'</span>':'')+
+          (timeStr?'<span style="color:var(--tm)">'+timeStr+'</span>':'')+
           '</div>';
       }).join('')+
       '</div></div>'
@@ -921,13 +923,23 @@ function renderHqHtml(hqData){
   return '<div class="hq-list">'+HQ.map(function(q,i){
     var ans=(hqData&&hqData[i])?hqData[i].a:'否';
     var note=(hqData&&hqData[i])?hqData[i].n:'';
-    return '<div class="hq-row">'+
+    var extra='';
+    if(i===5){
+      var wt=(hqData&&hqData[5])?hqData[5].wt||'':'';
+      var st=(hqData&&hqData[5])?hqData[5].st||'':'';
+      extra='<div style="display:flex;gap:6px;margin-top:4px;width:100%">'+
+        '<div style="flex:1"><label class="fl" style="font-size:11px">起床時間</label><input type="time" class="fi" id="hq_wt_5" value="'+wt+'"/></div>'+
+        '<div style="flex:1"><label class="fl" style="font-size:11px">睡覺時間</label><input type="time" class="fi" id="hq_st_5" value="'+st+'"/></div>'+
+      '</div>';
+    }
+    return '<div class="hq-row" style="flex-wrap:wrap">'+
       '<div class="hq-label">('+( i+1)+') '+q+'</div>'+
       '<div class="hq-yn" id="hq_yn_'+i+'">'+
         '<button type="button" class="hq-btn '+(ans==='是'?'hq-y-on':'')+'" data-qi="'+i+'" data-v="是">是</button>'+
         '<button type="button" class="hq-btn '+(ans==='否'?'hq-n-on':'')+'" data-qi="'+i+'" data-v="否">否</button>'+
       '</div>'+
       '<input class="fi hq-note" id="hq_n_'+i+'" value="'+note+'" placeholder="備註…"/>'+
+      extra+
     '</div>';
   }).join('')+'</div>';
 }
@@ -945,7 +957,12 @@ function collectHq(){
   return HQ.map(function(q,i){
     var yn=document.getElementById('hq_yn_'+i);
     var on=yn?yn.querySelector('.hq-y-on,.hq-n-on'):null;
-    return {a:on?on.dataset.v:'否',n:($('hq_n_'+i)||{value:''}).value};
+    var item={a:on?on.dataset.v:'否',n:($('hq_n_'+i)||{value:''}).value};
+    if(i===5){
+      item.wt=($('hq_wt_5')||{value:''}).value;
+      item.st=($('hq_st_5')||{value:''}).value;
+    }
+    return item;
   });
 }
 
