@@ -280,7 +280,10 @@ table.wt td{padding:6px 8px;border-bottom:.5px solid var(--bd);}
       <div class="sh"><div class="stl">使用者管理</div>
         <button class="btn btn-g btn-sm" id="addUserBtn"><i class="ti ti-plus"></i> 新增</button>
       </div>
-      <button class="btn btn-o btn-sm" id="catMgmtBtn" style="margin-bottom:10px"><i class="ti ti-folders"></i> 管理分類</button>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btn btn-o btn-sm" id="catMgmtBtn"><i class="ti ti-folders"></i> 管理分類</button>
+        <button class="btn btn-o btn-sm" id="backupBtn"><i class="ti ti-download"></i> 下載備份</button>
+      </div>
       <div id="userList"></div>
     </div>
 
@@ -470,6 +473,15 @@ function dbLoad(){
   db=dbDefault();
 }
 function dbSave(){ try{ localStorage.setItem(STORAGE_KEY,JSON.stringify(db)); }catch(e){} autoSync(); }
+function downloadBackup(){
+  var json=JSON.stringify(db,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='健康管理備份_'+today()+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('✓ 備份已下載');
+}
 
 // ── auth ──
 function doLogin(){
@@ -499,7 +511,18 @@ function doLogin(){
       .then(function(r){ return r.json(); })
       .then(function(data){
         clearTimeout(fallback);
-        if(data&&data.customers){ db=data; localStorage.setItem(STORAGE_KEY,JSON.stringify(db)); }
+        if(data&&data.customers){
+          // 合併：雲端沒有的本機顧客 / 回報，保留後推回雲端
+          var localDb=db;
+          var cloudCids={}; data.customers.forEach(function(c){ cloudCids[c.id]=true; });
+          var localOnlyCusts=localDb.customers.filter(function(c){ return !cloudCids[c.id]; });
+          if(localOnlyCusts.length) data.customers=data.customers.concat(localOnlyCusts);
+          var cloudRids={}; (data.reports||[]).forEach(function(r){ cloudRids[r.id]=true; });
+          var localOnlyReps=(localDb.reports||[]).filter(function(r){ return !cloudRids[r.id]; });
+          if(localOnlyReps.length) data.reports=(data.reports||[]).concat(localOnlyReps);
+          db=data; localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
+          if(localOnlyCusts.length||localOnlyReps.length) autoSync();
+        }
         finish();
       })
       .catch(function(){ clearTimeout(fallback); finish(); });
@@ -550,6 +573,7 @@ function setupNav(){
     on('nav-plans','onclick',function(){ navActive('nav-plans'); renderPlans(); goPage('pg-plans'); });
     on('nav-guide','onclick',function(){ navActive('nav-guide'); renderGuide(); goPage('pg-guide'); });
     on('nav-users','onclick',function(){ navActive('nav-users'); renderUsers(); goPage('pg-users'); });
+    on('backupBtn','onclick',downloadBackup);
     navActive('nav-list'); renderCatTabs(); renderCustList(); goPage('pg-list');
   } else if(role==='dealer'){
     nav.innerHTML=
