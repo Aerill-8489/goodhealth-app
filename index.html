@@ -1586,34 +1586,43 @@ function renderNutriDaily(){
     body.innerHTML+='<div class="empty"><i class="ti ti-messages"></i><p>尚無顧客回報</p></div>'; return;
   }
   var sorted=db.reports.slice().sort(function(a,b){ return a.date>b.date?-1:1; });
+  var qaMap2={'今天喝水達標了嗎？':'💧','今天有運動嗎？':'🏃','今天睡眠品質？':'😴','今天飲食控制？':'🥗','今天有吃保健品嗎？':'💊','今天身體感覺？':'❤️'};
   sorted.forEach(function(r){
     var c=db.customers.find(function(x){ return x.id===r.customerId; });
     var cname=c?c.name:'已刪除';
+    var qh='';
+    if(r.qa&&Object.keys(r.qa).length){
+      qh='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">';
+      Object.keys(r.qa).forEach(function(q){ qh+='<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg);border:.5px solid var(--bm)">'+(qaMap2[q]||'•')+' '+r.qa[q]+'</span>'; });
+      qh+='</div>';
+    }
+    var ph='';
+    if(r.photos&&r.photos.length){ ph='<div class="photo-grid" style="margin-bottom:6px">'; r.photos.forEach(function(p){ ph+='<div class="photo-slot"><img src="'+p+'"/></div>'; }); ph+='</div>'; }
     var card=document.createElement('div'); card.className='card';
     card.innerHTML=
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-        '<div style="display:flex;align-items:center;gap:8px">'+
+        '<div style="display:flex;align-items:center;gap:8px;cursor:pointer" class="nd-cust-link" data-cid="'+(c?c.id:0)+'">'+
           '<div class="av" style="width:32px;height:32px;font-size:12px">'+cname[0]+'</div>'+
           '<div><div style="font-size:13px;font-weight:500">'+cname+'</div><div style="font-size:11px;color:var(--tm)">'+r.date+'</div></div>'+
         '</div>'+
         (r.reply?'<span class="sbadge sb-ok">已回覆</span>':'<span class="sbadge sb-danger">待回覆</span>')+
       '</div>'+
-      (function(){
-        var qaMap2={'今天喝水達標了嗎？':'💧','今天有運動嗎？':'🏃','今天睡眠品質？':'😴','今天飲食控制？':'🥗','今天有吃保健品嗎？':'💊','今天身體感覺？':'❤️'};
-        var qh='';
-        if(r.qa&&Object.keys(r.qa).length){
-          qh='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">';
-          Object.keys(r.qa).forEach(function(q){ qh+='<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--bg);border:.5px solid var(--bm)">'+(qaMap2[q]||'•')+' '+r.qa[q]+'</span>'; });
-          qh+='</div>';
-        }
-        var ph='';
-        if(r.photos&&r.photos.length){ ph='<div class="photo-grid" style="margin-bottom:6px">'; r.photos.forEach(function(p){ ph+='<div class="photo-slot"><img src="'+p+'"/></div>'; }); ph+='</div>'; }
-        card.innerHTML+=qh+(r.note?'<div style="font-size:12px;line-height:1.6;background:var(--bg);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.note+'</div>':'')+ph+(r.supps&&r.supps.length?'<div style="font-size:11px;color:var(--tm);margin-bottom:6px">💊 '+r.supps.join('、')+'</div>':'')+(r.reply?'<div style="font-size:12px;background:var(--gl);color:var(--gd);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.reply+'</div>':'')+'<button class="btn btn-o btn-sm nd-reply" data-rid="'+r.id+'" style="width:100%;justify-content:center"><i class="ti ti-send"></i> '+(r.reply?'修改回覆':'回覆')+'</button>';
-      })();
+      qh+
+      (r.note?'<div style="font-size:12px;line-height:1.6;background:var(--bg);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.note+'</div>':'')+
+      ph+
+      (r.supps&&r.supps.length?'<div style="font-size:11px;color:var(--tm);margin-bottom:6px">💊 '+r.supps.join('、')+'</div>':'')+
+      (r.reply?'<div style="font-size:12px;background:var(--gl);color:var(--gd);padding:8px 10px;border-radius:var(--r1);margin-bottom:6px;white-space:pre-wrap">'+r.reply+'</div>':'')+
+      '<button class="btn btn-o btn-sm nd-reply" data-rid="'+r.id+'" style="width:100%;justify-content:center"><i class="ti ti-send"></i> '+(r.reply?'修改回覆':'回覆')+'</button>';
     body.appendChild(card);
   });
   qsa('.nd-reply',body).forEach(function(btn){
     btn.onclick=function(){ showReplyModal(+btn.dataset.rid,true); };
+  });
+  qsa('.nd-cust-link',body).forEach(function(link){
+    link.onclick=function(){
+      var cid=+link.dataset.cid; if(!cid) return;
+      currentCid=cid; navActive('nav-list'); renderDetail(); goPage('pg-detail');
+    };
   });
 }
 
