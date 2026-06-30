@@ -182,6 +182,15 @@ table.wt td{padding:6px 8px;border-bottom:.5px solid var(--bd);}
 .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;}
 .photo-slot{aspect-ratio:1;border-radius:var(--r1);border:.5px solid var(--bm);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--bg);}
 .photo-slot img{width:100%;height:100%;object-fit:cover;}
+/* health questionnaire */
+.hq-list{display:flex;flex-direction:column;gap:8px;}
+.hq-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hq-label{font-size:12px;color:var(--t2);flex:0 0 auto;width:100%;margin-bottom:2px;}
+.hq-yn{display:flex;gap:4px;flex:0 0 auto;}
+.hq-btn{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--bm);background:var(--bg);cursor:pointer;color:var(--t2);transition:all .15s;}
+.hq-y-on{background:#22c55e!important;color:#fff!important;border-color:#22c55e!important;}
+.hq-n-on{background:var(--bm)!important;color:var(--t2)!important;}
+.hq-note{flex:1;min-width:120px;font-size:12px!important;}
 </style>
 </head>
 <body>
@@ -352,6 +361,7 @@ function navActive(id){
 // ── constants ──
 var SUPPS=['AB益生菌','維他命C','膠原蛋白','魚油','B群','鎂片','益纖粉','燃脂錠','蛋白飲','花椰菜粉'];
 var BUYMETHODS=['現金','匯款','信用卡','Line Pay','其他'];
+var HQ=['您是否有以下疾病？','您常常會有？（頭痛、失眠、口乾等）','您是否常常便秘？','您是否容易感到疲勞？','您是否常常運動？','您是否常常熬夜？','您是否有吃宵夜習慣？','您是否有吃健康食品的習慣？','您是否長期使用慢性病藥物？','您是否曾嘗試其他減肥方式？'];
 var QA=[
   {q:'今天喝水達標了嗎？',opts:['達標','差一點','沒有']},
   {q:'今天有運動嗎？',opts:['有','輕度','沒有']},
@@ -679,13 +689,22 @@ function renderDetail(){
     '<div class="ii-grid">'+
       '<div class="ii"><div class="il">電話</div><div class="iv" style="font-size:13px">'+( c.phone||'—')+'</div></div>'+
       '<div class="ii"><div class="il">挑戰方案</div><div class="iv" style="font-size:13px">'+( c.challenge||'—')+'</div></div>'+
-      '<div class="ii"><div class="il">疾病/身體狀況</div><div class="iv" style="font-size:13px">'+( c.health||'—')+'</div></div>'+
-      '<div class="ii"><div class="il">常見症狀</div><div class="iv" style="font-size:13px">'+( c.symptoms||'—')+'</div></div>'+
       '<div class="ii"><div class="il">過敏/禁忌</div><div class="iv" style="font-size:13px">'+( c.allergy||'—')+'</div></div>'+
-      '<div class="ii"><div class="il">生活習慣</div><div class="iv" style="font-size:13px">'+( c.lifestyle||'—')+'</div></div>'+
-      '<div class="ii"><div class="il">曾試過的減肥方式</div><div class="iv" style="font-size:13px">'+( c.prevDiet||'—')+'</div></div>'+
       '<div class="ii"><div class="il">搭配產品</div><div class="iv" style="font-size:13px">'+( c.products||'—')+'</div></div>'+
     '</div>'+
+    ((c.healthQ&&c.healthQ.length)?
+      '<div style="margin-top:8px"><div class="fl" style="font-size:11px;color:var(--tm);margin-bottom:6px">健康問卷</div>'+
+      '<div style="display:flex;flex-direction:column;gap:4px">'+
+      HQ.map(function(q,i){
+        var hq=c.healthQ[i]||{a:'否',n:''};
+        return '<div style="display:flex;align-items:center;gap:6px;font-size:12px">'+
+          '<span style="min-width:26px;font-weight:600;color:'+(hq.a==='是'?'#22c55e':'var(--tm)')+'">'+hq.a+'</span>'+
+          '<span style="color:var(--t2)">('+( i+1)+') '+q+'</span>'+
+          (hq.n?'<span style="color:var(--tm)">— '+hq.n+'</span>':'')+
+          '</div>';
+      }).join('')+
+      '</div></div>'
+    :'')+
     (role==='dealer'?'':
     '<div style="margin-top:6px">'+
       '<button class="btn btn-o btn-sm" id="savePurchaseBtn"><i class="ti ti-shopping-cart"></i> 更新購買</button>'+
@@ -897,6 +916,39 @@ function renderSmartRef(c,p){
   el.innerHTML=html;
 }
 
+// ── health questionnaire helper ──
+function renderHqHtml(hqData){
+  return '<div class="hq-list">'+HQ.map(function(q,i){
+    var ans=(hqData&&hqData[i])?hqData[i].a:'否';
+    var note=(hqData&&hqData[i])?hqData[i].n:'';
+    return '<div class="hq-row">'+
+      '<div class="hq-label">('+( i+1)+') '+q+'</div>'+
+      '<div class="hq-yn" id="hq_yn_'+i+'">'+
+        '<button type="button" class="hq-btn '+(ans==='是'?'hq-y-on':'')+'" data-qi="'+i+'" data-v="是">是</button>'+
+        '<button type="button" class="hq-btn '+(ans==='否'?'hq-n-on':'')+'" data-qi="'+i+'" data-v="否">否</button>'+
+      '</div>'+
+      '<input class="fi hq-note" id="hq_n_'+i+'" value="'+note+'" placeholder="備註…"/>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+function bindHqToggle(){
+  qsa('.hq-btn',$('mBody')).forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var qi=btn.dataset.qi;
+      var yn=document.getElementById('hq_yn_'+qi);
+      qsa('.hq-btn',yn).forEach(function(b){ b.classList.remove('hq-y-on','hq-n-on'); });
+      btn.classList.add(btn.dataset.v==='是'?'hq-y-on':'hq-n-on');
+    });
+  });
+}
+function collectHq(){
+  return HQ.map(function(q,i){
+    var yn=document.getElementById('hq_yn_'+i);
+    var on=yn?yn.querySelector('.hq-y-on,.hq-n-on'):null;
+    return {a:on?on.dataset.v:'否',n:($('hq_n_'+i)||{value:''}).value};
+  });
+}
+
 // ── add customer ──
 function showAddCustomer(){
   $('mTitle').textContent='新增顧客';
@@ -920,15 +972,8 @@ function showAddCustomer(){
     '</div>'+
     '<div class="fgroup">'+
       '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康問卷</div>'+
-      '<div class="fr">'+
-        '<div class="fg"><label class="fl">疾病/身體狀況</label><input class="fi" id="nc_he" placeholder="水腫、甲狀腺等"/></div>'+
-        '<div class="fg"><label class="fl">常見症狀</label><input class="fi" id="nc_sy" placeholder="頭痛、失眠、口乾等"/></div>'+
-      '</div>'+
-      '<div class="fr">'+
-        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al" placeholder="無咖啡、無冰冷等"/></div>'+
-        '<div class="fg"><label class="fl">曾試過的減肥方式</label><input class="fi" id="nc_pd" placeholder="中藥、酵素等"/></div>'+
-      '</div>'+
-      '<div class="fg"><label class="fl">生活習慣</label><input class="fi" id="nc_lf" placeholder="睡眠、運動、飲水習慣等"/></div>'+
+      renderHqHtml(null)+
+      '<div class="fg" style="margin-top:8px"><label class="fl">過敏/禁忌</label><input class="fi" id="nc_al" placeholder="無咖啡、無冰冷等"/></div>'+
       '<div class="fg"><label class="fl">搭配產品/健康食品</label><input class="fi" id="nc_pr" placeholder="AB益生菌…"/></div>'+
     '</div>'+
     '<div class="fgroup">'+
@@ -942,7 +987,7 @@ function showAddCustomer(){
     '<div class="fgroup">'+
       '<div class="fsec"><i class="ti ti-target-arrow"></i> 挑戰期設定</div>'+
       '<div class="fr">'+
-        '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="nc_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option><option value="6">6個月</option></select></div>'+
+        '<div class="fg"><label class="fl">挑戰時間</label><select class="fi" id="nc_m"><option value="0.25">一週</option><option value="1">一個月</option><option value="3">三個月</option></select></div>'+
         '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="nc_pct" type="number" value="5"/></div>'+
       '</div>'+
       '<div class="fr">'+
@@ -983,6 +1028,7 @@ function showAddCustomer(){
     if(sw>0) $('nc_tw').value=(sw*(1-pct/100)).toFixed(1);
   }
   on('nc_sw','oninput',calcTw); on('nc_pct','oninput',calcTw);
+  bindHqToggle();
   on('saveNewCust','onclick',function(){
     var name=$('nc_n').value.trim(); if(!name){ toast('請輸入姓名'); return; }
     var sw=parseFloat($('nc_sw').value)||0, pct=parseFloat($('nc_pct').value)||5;
@@ -992,12 +1038,11 @@ function showAddCustomer(){
     var planSupps=planId?(db.plans.find(function(x){ return x.id===planId; })||{supplements:[]}).supplements:[];
     db.customers.push({id:Date.now(),name:name,gender:$('nc_g').value,height:parseFloat($('nc_h').value)||160,
       age:parseInt($('nc_a').value)||30,category:$('nc_cat').value,phone:$('nc_ph').value,
-      health:$('nc_he').value||'無',symptoms:$('nc_sy').value,allergy:$('nc_al').value||'無',
-      lifestyle:$('nc_lf').value,prevDiet:$('nc_pd').value,challenge:$('nc_ch').value,
+      healthQ:collectHq(),allergy:$('nc_al').value||'無',challenge:$('nc_ch').value,
       products:$('nc_pr').value||(planSupps.join('、')),lastBuyMethod:$('nc_bm').value,
       lastBuyDate:$('nc_bd').value,createdDate:today(),lastVisitDate:today(),
       beforePhoto:'',afterPhoto:'',note:$('nc_no').value,planId:planId,
-      periods:[{idx:0,label:'第1期',months:parseInt($('nc_m').value)||1,targetPct:pct,
+      periods:[{idx:0,label:'第1期',months:parseFloat($('nc_m').value)||1,targetPct:pct,
         startWeight:sw,targetWeight:tw,startDate:$('nc_sd').value,endDate:$('nc_ed').value,
         supplements:planSupps,weeks:[]}]});
     dbSave(); closeModal(); renderCustList(); renderCatTabs(); toast('✓ 已新增 '+name);
@@ -1027,15 +1072,8 @@ function editCustomer(cid){
     '</div>'+
     '<div class="fgroup">'+
       '<div class="fsec"><i class="ti ti-stethoscope"></i> 健康問卷</div>'+
-      '<div class="fr">'+
-        '<div class="fg"><label class="fl">疾病/身體狀況</label><input class="fi" id="ec_he" value="'+(c.health||'')+'"/></div>'+
-        '<div class="fg"><label class="fl">常見症狀</label><input class="fi" id="ec_sy" value="'+(c.symptoms||'')+'"/></div>'+
-      '</div>'+
-      '<div class="fr">'+
-        '<div class="fg"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+(c.allergy||'')+'"/></div>'+
-        '<div class="fg"><label class="fl">曾試過的減肥方式</label><input class="fi" id="ec_pd" value="'+(c.prevDiet||'')+'"/></div>'+
-      '</div>'+
-      '<div class="fg"><label class="fl">生活習慣</label><input class="fi" id="ec_lf" value="'+(c.lifestyle||'')+'"/></div>'+
+      renderHqHtml(c.healthQ||null)+
+      '<div class="fg" style="margin-top:8px"><label class="fl">過敏/禁忌</label><input class="fi" id="ec_al" value="'+(c.allergy||'')+'"/></div>'+
     '</div>'+
     '<div class="fgroup">'+
       '<div class="fsec"><i class="ti ti-shopping-cart"></i> 挑戰方案</div>'+
@@ -1047,14 +1085,14 @@ function editCustomer(cid){
     '</div>'+
     '<button class="btn btn-g btn-bl" id="saveEditCust"><i class="ti ti-check"></i> 儲存</button>';
   openModal();
+  bindHqToggle();
   on('saveEditCust','onclick',function(){
     c.name=$('ec_n').value.trim()||c.name;
     c.gender=$('ec_g').value; c.height=parseFloat($('ec_h').value)||c.height;
     c.age=parseInt($('ec_a').value)||c.age; c.category=$('ec_cat').value;
-    c.phone=$('ec_ph').value; c.health=$('ec_he').value;
-    c.symptoms=$('ec_sy').value; c.allergy=$('ec_al').value;
-    c.lifestyle=$('ec_lf').value; c.prevDiet=$('ec_pd').value;
-    c.challenge=$('ec_ch').value; c.note=$('ec_no').value;
+    c.phone=$('ec_ph').value; c.healthQ=collectHq();
+    c.allergy=$('ec_al').value; c.challenge=$('ec_ch').value;
+    c.note=$('ec_no').value;
     dbSave(); closeModal(); renderDetail(); toast('✓ 已儲存');
   });
 }
