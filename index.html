@@ -185,11 +185,11 @@ table.wt td{padding:6px 8px;border-bottom:.5px solid var(--bd);}
 /* health questionnaire */
 .hq-list{display:flex;flex-direction:column;gap:8px;}
 .hq-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.hq-label{font-size:12px;color:var(--t2);flex:0 0 auto;width:100%;margin-bottom:2px;}
+.hq-label{font-size:12px;color:var(--tm);flex:0 0 auto;width:100%;margin-bottom:2px;}
 .hq-yn{display:flex;gap:4px;flex:0 0 auto;}
-.hq-btn{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--bm);background:var(--bg);cursor:pointer;color:var(--t2);transition:all .15s;}
+.hq-btn{font-size:12px;padding:3px 10px;border-radius:20px;border:1px solid var(--bm);background:var(--bg);cursor:pointer;color:var(--tm);transition:all .15s;}
 .hq-y-on{background:#22c55e!important;color:#fff!important;border-color:#22c55e!important;}
-.hq-n-on{background:var(--bm)!important;color:var(--t2)!important;}
+.hq-n-on{background:var(--bm)!important;color:var(--tm)!important;}
 .hq-note{flex:1;min-width:120px;font-size:12px!important;}
 </style>
 </head>
@@ -1169,7 +1169,7 @@ function showAddPeriod(cid){
     '<div class="fgroup">'+
       '<div class="fsec"><i class="ti ti-target-arrow"></i> 挑戰期設定</div>'+
       '<div class="fr">'+
-        '<div class="fg"><label class="fl">挑戰幾個月</label><select class="fi" id="ap_m"><option value="1">1個月</option><option value="2">2個月</option><option value="3">3個月</option></select></div>'+
+        '<div class="fg"><label class="fl">挑戰時間</label><select class="fi" id="ap_m"><option value="0.25">一週</option><option value="1">一個月</option><option value="3">三個月</option></select></div>'+
         '<div class="fg"><label class="fl">目標減幾%</label><input class="fi" id="ap_pct" type="number" value="5"/></div>'+
       '</div>'+
       '<div class="fr">'+
@@ -1192,7 +1192,7 @@ function showAddPeriod(cid){
     var sw=parseFloat($('ap_sw').value)||0, pct=parseFloat($('ap_pct').value)||5;
     var tw=parseFloat($('ap_tw').value)||+(sw*(1-pct/100)).toFixed(1);
     var pi=c.periods.length;
-    c.periods.push({idx:pi,label:'第'+(pi+1)+'期',months:parseInt($('ap_m').value)||1,
+    c.periods.push({idx:pi,label:'第'+(pi+1)+'期',months:parseFloat($('ap_m').value)||1,
       targetPct:pct,startWeight:sw,targetWeight:tw,
       startDate:$('ap_sd').value,endDate:$('ap_ed').value,supplements:[],weeks:[]});
     currentPeriod=pi; dbSave(); closeModal(); renderDetail(); toast('✓ 第'+(pi+1)+'期已新增');
@@ -1737,6 +1737,8 @@ function renderCustomerDaily(){
     var note=$('cs_note').value.trim();
     var c=db.customers.find(function(x){ return x.name===currentUser; });
     var cid=c?c.id:0;
+    var already=db.reports.find(function(r){ return r.customerId===cid&&r.date===today(); });
+    if(already){ toast('今天已送出過回報了！'); return; }
     db.reports.push({id:Date.now(),customerId:cid,date:today(),qa:qa,supps:supps,note:note,reply:'',photos:photos.slice()});
     dbSave(); toast('✓ 回報已送出！');
     renderCustomerDaily();
@@ -1759,7 +1761,7 @@ function renderMyProgress(){
       '<div class="av" style="width:46px;height:46px;font-size:18px">'+c.name[0]+'</div>'+
       '<div><div style="font-size:17px;font-weight:700">'+c.name+'</div><div style="font-size:12px;color:var(--tm)">'+c.height+'cm・'+c.age+'歲</div></div>'+
     '</div>'+
-    '<div class="banner"><h3>挑戰 '+p.months+' 個月・目標減 '+p.targetPct+'%</h3>'+
+    '<div class="banner"><h3>挑戰 '+(p.months<=0.25?'一週':p.months<=1?'一個月':'三個月')+'・目標減 '+p.targetPct+'%</h3>'+
       '<div class="big">'+last+'<span style="font-size:15px;font-weight:400"> kg</span></div>'+
       '<div class="sub">目標 '+p.targetWeight+'kg・還差 '+Math.max(0,+(needed-lost).toFixed(1))+'kg</div>'+
     '</div>'+
@@ -2036,7 +2038,9 @@ function buildSyncPayload(){
     var pct=needed>0?Math.min(100,Math.round(lost/needed*100)):0;
     var pl=c.planId?db.plans.find(function(x){ return x.id===c.planId; }):null;
     return {id:c.id,name:c.name,gender:c.gender,height:c.height,age:c.age,category:c.category,
-      phone:c.phone,health:c.health,allergy:c.allergy,products:c.products,
+      phone:c.phone,challenge:c.challenge||'',
+      health:c.healthQ?c.healthQ.map(function(q,i){ return '('+(i+1)+')'+q.a+(q.n?':'+q.n:''); }).join(' / '):(c.health||''),
+      allergy:c.allergy,products:c.products,
       lastBuyMethod:c.lastBuyMethod,lastBuyDate:c.lastBuyDate,createdDate:c.createdDate,
       lastVisitDate:c.lastVisitDate,currentWeight:last,targetWeight:p.targetWeight,progressPct:pct,
       planName:pl?pl.name:'',note:c.note||''};
